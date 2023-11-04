@@ -1,21 +1,26 @@
 {
-  "SSD":
-{
-  "Steam"   : [{
-    "nom"    : "Ratchet",
-    "année"  : 2022,
-    "taille" : 80
-  },
-    {
+  "SSD": {
+    "Steam"   : [{
       "nom"    : "MWII",
-      "année"  : 2020,
-      "taille" : 90
-    }],
-  "EpicGames"   : [
-    {
-      "nom"    : "RL",
-      "année"  : 2015,
-      "taille" : 28
-    }]
-}
+      "taille" : 106,
+      "année"  : 2022
+    },
+      {
+        "nom"    : "Ratchet",
+        "taille" : 39.3,
+        "année"  : 2023
+      },
+      {
+        "nom"    : "Portal Source_Unpack",
+        "taille" : 9.5,
+        "année"  : 2007
+      }],
+    "Epic Games" : [
+      {
+        "nom"    : "RL",
+        "taille" : 28,
+        "année"  : 2015
+
+      }]
+  }
 }
