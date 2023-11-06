@@ -1,10 +1,6 @@
 {
-  "SSD": {
-    "Steam"   : [{
-      "nom"    : "MWII",
-      "taille" : 106,
-      "année"  : 2022
-    },
+  "SSD main": {
+    "Steam"   : [
       {
         "nom"    : "Ratchet",
         "taille" : 39.3,
@@ -14,13 +10,54 @@
         "nom"    : "Portal Source_Unpack",
         "taille" : 9.5,
         "année"  : 2007
-      }],
+      }
+    ],
     "Epic Games" : [
       {
         "nom"    : "RL",
-        "taille" : 28,
+        "taille" : 26.2,
         "année"  : 2015
-
+      }]
+  },
+  "SSD Sam":
+  {
+    "Rockstar_Games"   : [
+      {
+        "nom"    : "GTAV",
+        "année"  : 2013,
+        "taille" : 109
+      }],
+    "Battle.net"   : [
+      {
+        "nom"    : "Modern Warfare",
+        "année"  : 2019,
+        "taille" : 149
+      }],
+    "Steam"   : [
+      {
+        "nom"    : "MWII",
+        "année"  : 2022,
+        "taille" : 149
+      }]
+  },
+  "HDD Seagate":
+  {
+    "Games"   : [
+      {
+        "nom"    : "MW2",
+        "année"  : 2009,
+        "taille" : 11
+      },
+      {
+        "nom"    : "MWI",
+        "année"  : 2020,
+        "taille" : 70
+      }],
+    "EpicGames"   : [
+      {
+        "nom"    : "MWII",
+        "année"  : 2020,
+        "taille" : 90
       }]
   }
 }
