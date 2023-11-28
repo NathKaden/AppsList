@@ -19,5 +19,26 @@
         "année": 2007
       }
     ]
+  },
+  "SSD Sam": {
+    "Battle.net": [
+      {
+        "nom": "Modern Warfare",
+        "année": 2019,
+        "taille": 150
+      }
+    ],
+    "EA": [
+      {
+        "nom": "NFS : The Run",
+        "année": 2011,
+        "taille": 15.4
+      },
+      {
+        "nom": "NFS : Payback",
+        "année": 2017,
+        "taille": 27.9
+      }
+    ]
   }
-}
+  }
