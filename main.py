@@ -16,10 +16,12 @@ lbl.grid(column=0, row=0)
 # creation d'une barre de menu
 menu_bar = Menu(window)
 # Creer un premier menu
-file_menu = Menu(menu_bar, tearoff=0)
-menu_bar.add_cascade(label="Fichier",menu=file_menu)
-file_menu.add_command(label="Nouveau",command="")
-file_menu.add_command(label="Quitter",command=window.quit)
+fichier_menu = Menu(menu_bar, tearoff=0, background="#eeeeee")
+fichier_menu.add_command(label="Nouveau",command="")
+fichier_menu.add_command(label="Quitter",command=window.quit)
+menu_bar.add_cascade(label="Fichier",menu=fichier_menu)
+
+
 
 #configurer notre fenetre pour alouter cette menu bar
 window.config (menu=menu_bar)
