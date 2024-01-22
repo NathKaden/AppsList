@@ -15,7 +15,7 @@ print(BDD,type(BDD))
 
 #%%
 '''
-modifie la BDD si c'est bien un json
+modifie la bdd si c'est bien un json
 ex : ./BDDTest.json
 '''
 def editBDD(*args):
@@ -43,7 +43,7 @@ def editBDD(*args):
 #%%
 ################ GETTERS ################
 '''
-Retourne les disques de la BDD
+Retourne les disques de la bdd
 '''
 def getDisques():
     return list(BDD.keys())
@@ -64,7 +64,7 @@ print(getLaunchers())
 
 #%%
 '''
-Retourne les jeux de la BDD
+Retourne les jeux de la bdd
 '''
 def getGames():
     r=[]
@@ -77,30 +77,30 @@ print(getGames())
 ################ FONCTIONS PRINCIPALES ################
 def printGamesList(BDD):
     res=''
-    #for cle in BDD:
-    #    res+=BDD[cle]
+    #for cle in bdd:
+    #    res+=bdd[cle]
     #
     #    for cle2 in Steam:
-    #        res+=BDD[cle2]
+    #        res+=bdd[cle2]
     return BDD
 
 #%%
 '''
-ajoute un jeu à la BDD
+ajoute un jeu à la bdd
 '''
 def addGame(item,BDD):
     return ''
 
 #%%
 '''
-supr un jeu à la BDD
+supr un jeu à la bdd
 '''
 def delete(item,BDD):
     return ''
 
 #%%
 '''
-modifie un jeu de la BDD
+modifie un jeu de la bdd
 '''
 def edit(item,BDD):
     return ''

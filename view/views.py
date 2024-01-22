@@ -7,7 +7,7 @@ on le réecrit en 'epicgames' mais quand on demande c'est 'Epic Games'
 
 année facultatif
 peut-être une fonction qui le fait pour nous qu'on peut activer dans l'interface finale
-Une seule BDD par utilisateur
+Une seule bdd par utilisateur
 '''
 
 
@@ -40,6 +40,6 @@ def terminal():
 
 # terminal()
 #%%
-# print(BDD)
-# # print(BDD['SSD']['Steam'])
-# print(printGamesList(BDD))
+# print(bdd)
+# # print(bdd['SSD']['Steam'])
+# print(printGamesList(bdd))
