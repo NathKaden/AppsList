@@ -1,5 +1,5 @@
 # 📜 AppsList
-A python program that allows you to make your list of your games.
+A python program that allows you to make your list of your apps.
 
 ## 🖋️ Description
 Un programme qui permet de mettre tous ses jeux et applications dans une liste :  
