@@ -83,5 +83,6 @@ La fonction `actualiser()` : actualisera le nombre d'applications, elle sera app
 - Écrit le nbre de jeux dans la bdd
 
 ## N'est pas compris dans l'objectif principal :
-Fonction qui permet de prendre une application en cours et de l'ajouter à la liste
+- Fonction qui permet de prendre une application en cours et de l'ajouter à la liste
+- Un thème clair
 
