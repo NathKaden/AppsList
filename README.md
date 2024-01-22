@@ -1,11 +1,8 @@
 # 📜 AppsList
-A python program that allows you to make your list of your apps.
+### A python program that allows you to make your list of your apps.
 
 ## 🖋️ Description
-Un programme qui permet de mettre tous ses jeux et applications dans une liste :  
-
-`/ajout help {add, del, print} {C, D, E} {jeu.toString}`
-`/ajout C Rocket_league 28Go Epic_games`
+**Un programme qui permet de mettre tous ses jeux et applications dans une liste**  
 
 ## ✨ Features
 - [X] 📦 Base de données de test
@@ -41,6 +38,11 @@ Edit {copy, paste, find (deplacerjeu)}
 Vue {liste, tri, thèmes, langue}  
 Autres {Commande (terminal), GitHub, crédits}
 
+## Terminal :
+Synthaxe : `/ajout help {add | del | print} {C | D | E} {app.toString}`  
+
+Exemple : `/ajout C Rocket_league 28Go Epic_games`
+
 <br>
 
 >[!NOTE]
@@ -56,17 +58,18 @@ un nom, une taille, et une année de sortie.
 ## Fonctions :
 - loadBDD(path)
 - editBDD(*args)
-- getDisques()
-- getLaunchers()
-- getGames()
+- getters :
+  - getDisques()
+  - getLaunchers()
+  - getGames()
+- terminal()
 - printGamesList() (toString)
 - addGame()
 - addLauncher()
-- terminal()
-fonction pour modifier le launcher d'un jeu
-fonction deplacer(jeu) de disque
-fonction ajouter un jeu ouvre une petite fenêtre pour ajouter un jeu
-fonction verifLauncher qui prend en paramètre un launcher qui le remet en bien écrit
+fonction pour modifier le launcher d'un jeu  
+fonction deplacer(jeu) de disque  
+fonction ajouter un jeu ouvre une petite fenêtre pour ajouter un jeu  
+fonction verifLauncher qui prend en paramètre un launcher qui le remet en bien écrit  
 
 ### Fonctionnement lors de l'ouverture :
 Sauvegarde dans un fichier `last.json` pour savoir où est la dernière bdd chargée.
