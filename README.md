@@ -1,8 +1,8 @@
 # 📜 AppsList
-### A python program that allows you to make your list of your apps.
+### An app that allows you to make your list of your apps.
 
 ## 🖋️ Description
-**Un programme qui permet de mettre tous ses jeux et applications dans une liste**  
+**Une application qui permet de mettre tous ses jeux et applications dans une liste**  
 
 ## ✨ Features
 - [X] 📦 Base de données de test
