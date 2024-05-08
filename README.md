@@ -29,7 +29,7 @@ SSD main (C:) [] :eg: | Rocket_League | 24 Go | 2015
 [] SSD main (C:) | [] SSD sam (:D)
 ```
 >Remarques :  
->[] : Bordure épaisse colorée par disques (rouge, vert, bleu etc)  
+>[] : Bordure épaisse colorée par disques (orange, lime, bleuclair etc)  
 >Ligne d'une app : logo launcher | jeu | taille | année de sortie
 
 ### En-tête :
