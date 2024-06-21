@@ -7,7 +7,8 @@
 ## ✨ Features
 - [X] 📦 Base de données de test
 - [X] 🌙 Dark theme
-- [ ] ⚙️ Menu bar
+- [ ] ⚙️ Menu bar (haut) (80%)
+- [ ] ⚙️ Menu bar (bas)
 - [ ] 📜 Fonctions
   - [ ] 📎 Fichiers
   - [ ] 📎 Editer
