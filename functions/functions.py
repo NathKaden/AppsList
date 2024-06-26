@@ -58,12 +58,10 @@ def getDisques(BDD):
 
 def get_color(index):
     fichiersettings = open(path_settings, "r", encoding='utf-8')
-    colors = json.load(fichiersettings)
+    colorsload = json.load(fichiersettings)
     fichiersettings.close()
-
-    colors = ["#ED7F10", "#BDFF00", "skyblue"]
+    colors = colorsload["colors"]
     return colors[index % len(colors)]
-
 
 #%%
 '''
