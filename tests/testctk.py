@@ -11,7 +11,6 @@ customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), da
 app = customtkinter.CTk()  # create CTk window like you do with the Tk window
 app.title("GameList")
 app.geometry('750x480')
-app.iconbitmap('./assets/icon.ico')
 app.config(background="#33333F")
 
 def afficher_boutons():

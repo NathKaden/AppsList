@@ -12,9 +12,15 @@
 - [ ] 📜 Fonctions
   - [ ] 📎 Fichiers
   - [ ] 📎 Editer
-     
 
-## Interface prévue
+
+## 📁 Fonctionnement des dossiers
+
+Le `main.py` est le fichier principal, l'application. C'est la dernière meilleure version de l'application.  
+Le dossier `ver/` contient les versions de l'application, à chaque fonctionnalité, une version est ajoutée.
+Le dossier `tests/` est le "bac à sable" de l'application, c'est là qu'on fait nos tests et où on développe nos trucs.
+
+## 🖥️ Interface prévue
 ```
 --------------------------------------------------------------
 Fichier | Editer | Vue | Autres             BDD.json | 8 apps
@@ -35,7 +41,7 @@ SSD main (C:) [] :eg: | Rocket_League | 24 Go | 2015
 
 ### En-tête :
 Fichier {ouvrir, sauvegarder, ouvrir l'emplacement, quitter}  
-Edit {copy, paste, find (deplacerjeu)}  
+Edit {copier, coller, trouver (deplacerjeu)}  
 Vue {liste, tri, thèmes, langue}  
 Autres {Commande (terminal), GitHub, crédits}
 
@@ -49,14 +55,14 @@ Exemple : `/ajout C Rocket_league 28Go Epic_games`
 >[!NOTE]
 >Ce qui suit correspond uniquement au développement de l'application
 
-## Description de la base de données :
+## 🗄️ Description de la base de données :
 Une base de données a :  
 Des disques qui ont  
 des launchers qui ont  
 des jeux ou application qui ont  
 un nom, une taille, et une année de sortie.  
 
-## Fonctions :
+## 🔗 Fonctions :
 - loadBDD(path)
 - editBDD(*args)
 - getters :
