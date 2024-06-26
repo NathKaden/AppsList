@@ -70,8 +70,8 @@ Sauvegarde dans un fichier `settings.json` pour savoir où est la dernière bdd 
 La bdd par défaut se nomme BDD.json
 
 >Charger la bdd si aucune chargée depuis sauvegarde écrite dans `settings.json`
->`loadBDD`
-  
+> -> Utilisation de la fonction `loadBDD`
+<br>
 
 La fonction `actualiser()` : actualisera le nombre d'applications, elle sera appellée à chaque changement.  
 - Écrit la bdd chargée en haut à droite dans la même ligne que fichier  
