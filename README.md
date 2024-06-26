@@ -34,7 +34,7 @@ SSD main (C:) [] :eg: | Rocket_League | 24 Go | 2015
 --------------------------------------------------------------
 [] SSD main (C:) | [] SSD sam (:D)          BDD.json | 8 apps
 ```
-!(/assets/maquette.png)[maquette.png]
+![voir image](https://github.com/NathKaden/AppsList/blob/main/assets/maquette.png)
 >Note :
 >Ligne d'une app : logo launcher | jeu | taille | année de sortie
 
