@@ -1,6 +1,8 @@
 import json
 import os
 
+path_settings = "../assets/settings.json"
+
 def fonctiontest(a):
     return a
 
@@ -56,7 +58,7 @@ def getDisques(BDD):
 
 def get_color(index):
     fichiersettings = open(path_settings, "r", encoding='utf-8')
-    colors = json.load(fichier)
+    colors = json.load(fichiersettings)
     fichiersettings.close()
 
     colors = ["#ED7F10", "#BDFF00", "skyblue"]
