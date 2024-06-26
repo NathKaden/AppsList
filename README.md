@@ -20,21 +20,7 @@ Le dossier `ver/` contient les versions de l'application, à chaque fonctionnali
 Le dossier `tests/` est le "bac à sable" de l'application, c'est là qu'on fait nos tests et où on développe nos trucs.
 
 ## 🖥️ Interface prévue
-```
---------------------------------------------------------------
-Fichier | Editer | Vue | Autres
---------------------------------------------------------------
-
-SSD main (C:) [] :eg: | Rocket_League | 24 Go | 2015
-              []
-              []
-              []
-              [ Ajouter un jeu ]
-
---------------------------------------------------------------
-[] SSD main (C:) | [] SSD sam (:D)          BDD.json | 8 apps
-```
-![voir image](https://github.com/NathKaden/AppsList/blob/main/assets/maquette.png)
+![Voir image](https://github.com/NathKaden/AppsList/blob/main/assets/maquette.png)
 >Note :
 >Ligne d'une app : logo launcher | jeu | taille | année de sortie
 
