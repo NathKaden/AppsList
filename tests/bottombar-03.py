@@ -77,6 +77,7 @@ class MainWindow(QMainWindow):
             font-size: 15px;
         }
         
+        
         QMenuBar {
             background: qlineargradient(x1:0, y1:0, x2:0.5, y2:0,
                     stop:0 #2E3F00, stop:1 #353336);
@@ -135,9 +136,20 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(stylesheet)
 
     def __applyBDD(self):
+
+        path_settings = "../assets/settings.json"
+        fichiersettings = open(path_settings, "r", encoding='utf-8')
+        settings = json.load(fichiersettings)
+        fichiersettings.close()
+
+        path_bdd = settings["path_bdd"]
+
+
+        BDD = loadBDD(path_bdd)
+        print(BDD, type(BDD))
+
         # Add a status bar
         statusbar = QStatusBar()
-
 
         # Liste de chaînes de caractères à afficher dans la barre de statut
         items = getDisques(BDD)

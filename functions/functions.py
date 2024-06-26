@@ -1,10 +1,8 @@
 import json
 import os
 
-
 def fonctiontest(a):
     return a
-
 
 #%%
 # loadBDD
@@ -13,11 +11,6 @@ def loadBDD(path):
     BDD = json.load(fichier)
     fichier.close()
     return BDD
-
-
-path = "../bdd/BDDTest.json"
-BDD = loadBDD(path)
-print(BDD, type(BDD))
 
 #%%
 '''
@@ -61,10 +54,11 @@ def getDisques(BDD):
     return (list(BDD.keys()))
 
 
-print((getDisques(BDD)))
-
-
 def get_color(index):
+    fichiersettings = open(path_settings, "r", encoding='utf-8')
+    colors = json.load(fichier)
+    fichiersettings.close()
+
     colors = ["#ED7F10", "#BDFF00", "skyblue"]
     return colors[index % len(colors)]
 
@@ -83,9 +77,6 @@ def getNbJeux(BDD):
                 if 'nom' in game:  # Vérification de la présence de la clé "nom"
                     count += 1
     return count
-
-
-print(getNbJeux(BDD))
 
 #%%
 ### A FAIRE ###
