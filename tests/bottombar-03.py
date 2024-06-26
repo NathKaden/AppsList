@@ -69,7 +69,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(centralWidget)
 
 
-
     def __applyTheme(self):
         print("Application du thème")
         stylesheet = """

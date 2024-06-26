@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
         
         QMenuBar {
             background: qlineargradient(x1:0, y1:0, x2:0.5, y2:0,
-                    stop:0 #2E3F00, stop:1 #353336);
+                    stop:0 #353b26, stop:1 #353336);
             color: #ffffff;
             font-size: 15px;
             border-bottom: 1px solid;

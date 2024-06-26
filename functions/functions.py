@@ -1,33 +1,41 @@
 import json
 import os
 
+
+def fonctiontest(a):
+    return a
+
+
 #%%
 # loadBDD
 def loadBDD(path):
-    fichier = open(path,"r",encoding='utf-8')
+    fichier = open(path, "r", encoding='utf-8')
     BDD = json.load(fichier)
     fichier.close()
     return BDD
 
-path = "./BDDTest.json"
+
+path = "../bdd/BDDTest.json"
 BDD = loadBDD(path)
-print(BDD,type(BDD))
+print(BDD, type(BDD))
 
 #%%
 '''
 modifie la bdd si c'est bien un json
 ex : ./BDDTest.json
 '''
+
+
 def editBDD(*args):
     if args == ():
         print('Args vide')
         path = input("Indiquer le chemin d'accès (exemple : './BDDTest.json') :")
     else:
-        path=args
-    if path=="":
-        path="vide"
-    print("Entrée :",path)
-    if path[-5:]=='.json':
+        path = args
+    if path == "":
+        path = "vide"
+    print("Entrée :", path)
+    if path[-5:] == '.json':
         print('Le fichier est bien un json')
         if os.path.exists(path):
             print('Le fichier existe')
@@ -35,7 +43,9 @@ def editBDD(*args):
             loadBDD(path)
             print('Fichier chargé avec succès')
             print(BDD)
-    else:return "Erreur : Merci de mettre un fichier json."
+    else:
+        return "Erreur : Merci de mettre un fichier json."
+
 
 #test :
 #editBDD()
@@ -45,38 +55,75 @@ def editBDD(*args):
 '''
 Retourne les disques de la bdd
 '''
-def getDisques():
-    return list(BDD.keys())
-print((getDisques()))
+
+
+def getDisques(BDD):
+    return (list(BDD.keys()))
+
+
+print((getDisques(BDD)))
+
+
+def get_color(index):
+    colors = ["#ED7F10", "#BDFF00", "skyblue"]
+    return colors[index % len(colors)]
+
+
+#%%
+'''
+Retourne le nombre de jeux
+'''
+
+
+def getNbJeux(BDD):
+    count = 0
+    for disque in BDD.values():  # Parcours des niveaux supérieurs ("SSD main", "SSD Sam")
+        for platform in disque.values():  # Parcours des plates-formes ("Epic Games", "Steam", etc.)
+            for game in platform:  # Parcours des jeux dans chaque plate-forme
+                if 'nom' in game:  # Vérification de la présence de la clé "nom"
+                    count += 1
+    return count
+
+
+print(getNbJeux(BDD))
+
+#%%
+### A FAIRE ###
 
 #%%
 '''
 Retourne les launchers
 '''
+
+
 def getLaunchers():
-    r={}
-    for cle in getDisques():
-        r[cle]=list(BDD[cle].keys())
+    r = {}
+    # for cle in getDisques():
+    #     r[cle]=list(BDD[cle].keys())
     return r
 
-print(getLaunchers())
-#{'SSD main': ['Epic Games', 'Steam'], 'SSD Sam': ['Battle.net', 'EA']}
+
+# print(getLaunchers())
 
 #%%
 '''
 Retourne les jeux de la bdd
 '''
+
+
 def getGames():
-    r=[]
+    r = []
     for c in getDisques():
         r += BDD[c].keys()
     return r
-print(getGames())
+
+
+# print(getGames())
 
 #%%
 ################ FONCTIONS PRINCIPALES ################
 def printGamesList(BDD):
-    res=''
+    res = ''
     #for cle in bdd:
     #    res+=bdd[cle]
     #
@@ -84,25 +131,37 @@ def printGamesList(BDD):
     #        res+=bdd[cle2]
     return BDD
 
+
 #%%
 '''
 ajoute un jeu à la bdd
 '''
-def addGame(item,BDD):
+
+
+def addGame(item, BDD):
     return ''
+
 
 #%%
 '''
 supr un jeu à la bdd
 '''
-def delete(item,BDD):
+
+
+def delete(item, BDD):
     return ''
+
 
 #%%
 '''
 modifie un jeu de la bdd
 '''
-def edit(item,BDD):
+
+
+def edit(item, BDD):
     return ''
 
+
 #%%
+
+print("Fonctions lues")
