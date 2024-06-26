@@ -15,7 +15,7 @@ class MainWindow(Window):
         # Create a menu bar
         menuBar = QMenuBar(self)
         self.setWindowTitle("GameList")
-        self.setGeometry(100, 100, 750, 480)  # (x, y, width, height)
+        self.setGeometry(200, 200, 750, 480)  # (x, y, width, height)
 
         # Fichier menu
         fileMenu = QMenu('Fichier', self)
