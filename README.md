@@ -69,7 +69,7 @@ Sauvegarde dans un fichier `settings.json` pour savoir où est la dernière bdd 
   Dans ce cas création d'une BDD vide.
 La bdd par défaut se nomme BDD.json
 
->Charger la bdd si aucune chargée depuis sauvegarde écrite dans `settings.json`
+>Charger la bdd si aucune chargée depuis sauvegarde écrite dans `settings.json`  
 > -> Utilisation de la fonction `loadBDD`
 <br>
 
