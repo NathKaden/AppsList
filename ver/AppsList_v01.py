@@ -1,3 +1,4 @@
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QVBoxLayout, QApplication, QWidget, QMenuBar, QMenu, QAction
 from PyQt5.QtCore import pyqtSignal
 
@@ -15,6 +16,7 @@ class MainWindow(Window):
         # Create a menu bar
         menuBar = QMenuBar(self)
         self.setWindowTitle("GameList")
+        self.setWindowIcon(QIcon('../assets/icon.jpg'))
         self.setGeometry(100, 100, 750, 480)  # (x, y, width, height)
 
         # Fichier menu
