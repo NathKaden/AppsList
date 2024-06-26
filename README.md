@@ -13,7 +13,6 @@
   - [ ] 📎 Fichiers
   - [ ] 📎 Editer
 
-
 ## 📁 Fonctionnement des dossiers
 
 Le `main.py` est le fichier principal, l'application. C'est la dernière meilleure version de l'application.  
@@ -23,7 +22,7 @@ Le dossier `tests/` est le "bac à sable" de l'application, c'est là qu'on fait
 ## 🖥️ Interface prévue
 ```
 --------------------------------------------------------------
-Fichier | Editer | Vue | Autres             BDD.json | 8 apps
+Fichier | Editer | Vue | Autres
 --------------------------------------------------------------
 
 SSD main (C:) [] :eg: | Rocket_League | 24 Go | 2015
@@ -33,10 +32,10 @@ SSD main (C:) [] :eg: | Rocket_League | 24 Go | 2015
               [ Ajouter un jeu ]
 
 --------------------------------------------------------------
-[] SSD main (C:) | [] SSD sam (:D)
+[] SSD main (C:) | [] SSD sam (:D)          BDD.json | 8 apps
 ```
->Remarques :  
->[] : Bordure épaisse colorée par disques (orange, lime, bleuclair etc)  
+![/assets/maquette.png](voir image)
+>Note :
 >Ligne d'une app : logo launcher | jeu | taille | année de sortie
 
 ### En-tête :
