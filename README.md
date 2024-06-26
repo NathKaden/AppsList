@@ -64,14 +64,14 @@ fonction ajouter un jeu ouvre une petite fenêtre pour ajouter un jeu
 fonction verifLauncher qui prend en paramètre un launcher qui le remet en bien écrit  
 
 ### Fonctionnement lors de l'ouverture :
-Sauvegarde dans un fichier `last.json` pour savoir où est la dernière bdd chargée.
+Sauvegarde dans un fichier `settings.json` pour savoir où est la dernière bdd chargée.
   Si c'est vide c'est que aucune bdd n'a encore été chargée.
   Dans ce cas création d'une BDD vide.
 La bdd par défaut se nomme BDD.json
 
-Charger la bdd si aucune chargée depuis sauvegarde écrite dans `last.json`
->-> `loadBDD`
-<br>
+>Charger la bdd si aucune chargée depuis sauvegarde écrite dans `settings.json`
+>`loadBDD`
+  
 
 La fonction `actualiser()` : actualisera le nombre d'applications, elle sera appellée à chaque changement.  
 - Écrit la bdd chargée en haut à droite dans la même ligne que fichier  
