@@ -63,11 +63,11 @@ class MainWindow(QMainWindow):
 
         lay = QVBoxLayout()
         centralWidget = QWidget()
+        centralWidget.setObjectName("centralWidget")  # Ajout du nom d'objet
         centralWidget.setLayout(lay)
 
         # Set the central widget
         self.setCentralWidget(centralWidget)
-
 
 
     def __applyTheme(self):
@@ -77,15 +77,17 @@ class MainWindow(QMainWindow):
             color: #ffffff;
             font-size: 15px;
         }
+        #centralWidget{
+        background-color: #29272b;}
         
         QMenuBar {
             background: qlineargradient(x1:0, y1:0, x2:0.5, y2:0,
-                    stop:0 #353b26, stop:1 #353336);
+                    stop:0 #3b3b54, stop:1 #353336);
             color: #ffffff;
             font-size: 15px;
             border-bottom: 1px solid;
             border-top: 1px solid #2d2b2e;
-            border-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop: 0 #9fc040, stop: 1 #575657) red #2d2b2e;
+            border-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop: 0 lavender, stop: 1 #575657) red #2d2b2e;
             padding-top: 1px;
         }
         
@@ -136,9 +138,19 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(stylesheet)
 
     def __applyBDD(self):
+
+        path_settings = "../assets/settings.json"
+        fichiersettings = open(path_settings, "r", encoding='utf-8')
+        settings = json.load(fichiersettings)
+        fichiersettings.close()
+
+        path_bdd = settings["path_bdd"]
+
+        BDD = loadBDD(path_bdd)
+        print(BDD, type(BDD))
+
         # Add a status bar
         statusbar = QStatusBar()
-
 
         # Liste de chaînes de caractères à afficher dans la barre de statut
         items = getDisques(BDD)
@@ -156,8 +168,11 @@ class MainWindow(QMainWindow):
         # Ajout du QLabel à la barre de statut
         statusbar.addWidget(list_label)
 
+        # Afficher le nom du fichier
+        bddnamestr = os.path.splitext(os.path.basename(path_bdd))[0]
 
-        r_label = str(getNbJeux(BDD)) + " App(s)"
+
+        r_label = bddnamestr +"  -  "+ str(getNbJeux(BDD)) + " App(s)"
         right_label = QLabel(r_label)
 
         # Ajout des widgets labels à la barre de statut
