@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
             font-size: 15px;
             border-bottom: 1px solid;
             border-top: 1px solid #2d2b2e;
-            border-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop: 0 lavender, stop: 1 #575657) red #2d2b2e;
+            border-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop: 0 #9999bd, stop: 1 #575657) red #2d2b2e;
             padding-top: 1px;
         }
         
