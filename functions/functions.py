@@ -71,10 +71,10 @@ Retourne le nombre de jeux
 
 def getNbJeux(BDD):
     count = 0
-    for disque in BDD.values():  # Parcours des niveaux supérieurs ("SSD main", "SSD Sam")
-        for platform in disque.values():  # Parcours des plates-formes ("Epic Games", "Steam", etc.)
-            for game in platform:  # Parcours des jeux dans chaque plate-forme
-                if 'nom' in game:  # Vérification de la présence de la clé "nom"
+    for disque in BDD.values():
+        for platform in disque.values():
+            for game in platform:
+                if 'nom' in game:
                     count += 1
     return count
 
@@ -98,22 +98,16 @@ def getLaunchers():
 
 #%%
 '''
-Retourne les jeux de la bdd
+Retourne le nbre de disques de la bdd
 '''
+def getNbDisques(BDD):
+    return len(BDD)
 
 
-def getGames():
-    r = []
-    for c in getDisques():
-        r += BDD[c].keys()
-    return r
-
-
-# print(getGames())
 
 #%%
 ################ FONCTIONS PRINCIPALES ################
-def printGamesList(BDD):
+def printList(BDD):
     res = ''
     #for cle in bdd:
     #    res+=bdd[cle]
