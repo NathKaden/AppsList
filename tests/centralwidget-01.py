@@ -68,72 +68,8 @@ class MainWindow(QMainWindow):
 
 
     def __applyTheme(self):
-        print("Application du thème")
-        stylesheet = """
-        QWidget {
-            color: #ffffff;
-            font-size: 15px;
-        }
-        #centralWidget{
-        background-color: #29272b;}
-        
-        QMenuBar {
-            background: qlineargradient(x1:0, y1:0, x2:0.5, y2:0,
-                    stop:0 #3b3b54, stop:1 #353336);
-            color: #ffffff;
-            font-size: 15px;
-            border-bottom: 1px solid;
-            border-top: 1px solid #2d2b2e;
-            border-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop: 0 #9999bd, stop: 1 #575657) red #2d2b2e;
-            padding-top: 1px;
-        }
-        
-        QMenuBar::item {
-            background-color: transparent;
-            padding: 4px 8px;
-        }
-        
-        QMenuBar::item:selected {
-            background-color: rgba(255,255,255,40);
-        }
-        
-        QMenuBar::item:hover {
-            background-color: transparent;
-        }
-        
-        QMenu {
-            background-color: #2e2e2e;
-            color: #ffffff;
-            padding: 4px;
-            border: 1px solid dimgrey;
-        }
-        
-        QMenu::item {
-            padding: 0 30px 0 20px;
-        }
-        
-        QMenu::item:selected {
-            background-color: #555555;
-            border-radius: 5px;
-        }
-        
-        QStatusBar {
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #353336, stop:1 #3e3c40);
-            color: #ffffff;
-            font-size: 15px;
-            border-top: 1px solid grey;
-        }
-        QStatusBar::item {
-            border: none;
-        }
-        QStatusBar QLabel {
-            background-color: transparent;
-            padding: 0px 10 px;
-        }
-        
-        
-        """
+        with open('../assets/style.qss', 'r') as file:
+            stylesheet = file.read()
         self.setStyleSheet(stylesheet)
 
     def __applyBDD(self):
@@ -164,25 +100,37 @@ class MainWindow(QMainWindow):
         bddnamestr = os.path.splitext(os.path.basename(path_bdd))[0]
 
 
-        r_label = bddnamestr +"  -  "+ str(getNbJeux(BDD)) + " App(s)"
+        r_label = bddnamestr +"  -  "+ str(getNbApps(BDD)) + " App(s)"
         right_label = QLabel(r_label)
 
         # Ajout des widgets labels à la barre de statut
         statusbar.addPermanentWidget(list_label, 1)
         statusbar.addPermanentWidget(right_label)
-
         self.setStatusBar(statusbar)
 
-        html1 = f'<html><div style="display: flex; flex-direction:column">'
+        # TO DO -------------------------------------------------
+        # Central Widget
+
+        html1 = f'<html><div style="display: flex; flex-direction:column; gap:10px;">'
 
         listdisques = ""
-        for index, disque in enumerate(disques):
-            if index > 0:
+        for indexd, disque in enumerate(disques):
+            if indexd > 0:
                 listdisques += "<br>"
-            listdisques += f'<div style="width:100%; height:50%; border-right: 2px solid lavender">{disque}</div>'
+            listdisques += f'<div style="width:100%; background-color:#333;">{disque}</div>'
 
         listdisques_label = QLabel(f'{html1}{listdisques}</div></html>')
-        listdisques_label.setOpenExternalLinks(True)  # Permet l'interprétation du HTML
+
+        print(getDisques(BDD))
+        print(getLaunchers(BDD))
+        print(getApps(BDD))
+        print(getNbDisques(BDD))
+        print(getNbLaunchers(BDD))
+        print(getNbApps(BDD))
+
+        # TO DO -------------------------------------------------
+        # Mise en place
+        listdisques_label.setOpenExternalLinks(True)
         listdisques_label.setObjectName("centralWidget")
         listdisques_label.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setCentralWidget(listdisques_label)

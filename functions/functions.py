@@ -3,8 +3,10 @@ import os
 
 path_settings = "../assets/settings.json"
 
+
 def fonctiontest(a):
     return a
+
 
 #%%
 # loadBDD
@@ -13,6 +15,7 @@ def loadBDD(path):
     BDD = json.load(fichier)
     fichier.close()
     return BDD
+
 
 #%%
 '''
@@ -46,14 +49,9 @@ def editBDD(*args):
 #editBDD()
 
 #%%
-################ GETTERS ################
 '''
-Retourne les disques de la bdd
+Retourne la couleur par rapport aux paramètres
 '''
-
-
-def getDisques(BDD):
-    return (list(BDD.keys()))
 
 
 def get_color(index):
@@ -63,20 +61,17 @@ def get_color(index):
     colors = colorsload["colors"]
     return colors[index % len(colors)]
 
+
 #%%
+# GETTERS
 '''
-Retourne le nombre de jeux
+Retourne les disques de la bdd
 '''
 
 
-def getNbJeux(BDD):
-    count = 0
-    for disque in BDD.values():
-        for platform in disque.values():
-            for game in platform:
-                if 'nom' in game:
-                    count += 1
-    return count
+def getDisques(BDD):
+    return list(BDD.keys())
+
 
 #%%
 ### A FAIRE ###
@@ -87,49 +82,72 @@ Retourne les launchers
 '''
 
 
-def getLaunchers():
-    r = {}
-    # for cle in getDisques():
-    #     r[cle]=list(BDD[cle].keys())
-    return r
+def getLaunchers(BDD):
+    launchers = []
+    for disques in BDD.values():
+        launchers.extend(disques.keys())
+    return launchers
 
 
 # print(getLaunchers())
 
 #%%
 '''
+Retourne apps
+'''
+
+
+def getApps(BDD):
+    apps = []
+    for disques in BDD.values():
+        for launcher in disques.values():
+            apps.extend(launcher)
+    return apps
+
+
+#%%
+'''
 Retourne le nbre de disques de la bdd
 '''
+
+
 def getNbDisques(BDD):
     return len(BDD)
 
 
-
 #%%
-################ FONCTIONS PRINCIPALES ################
-def printList(BDD):
-    res = ''
-    #for cle in bdd:
-    #    res+=bdd[cle]
-    #
-    #    for cle2 in Steam:
-    #        res+=bdd[cle2]
-    return BDD
+'''
+Retourne le nombre apps
+'''
+
+
+def getNbLaunchers(BDD):
+    return len(getLaunchers(BDD))
 
 
 #%%
 '''
-ajoute un jeu à la bdd
+Retourne le nombre launchers
 '''
 
 
-def addGame(item, BDD):
+def getNbApps(BDD):
+    return len(getApps(BDD))
+
+
+#%%
+'''
+ajoute une app à la bdd
+'''
+
+
+def addApp(item, BDD):
     return ''
 
 
 #%%
 '''
-supr un jeu à la bdd
+supr une app à la bdd
 '''
 
 
@@ -139,7 +157,7 @@ def delete(item, BDD):
 
 #%%
 '''
-modifie un jeu de la bdd
+modifie une app de la bdd
 '''
 
 
