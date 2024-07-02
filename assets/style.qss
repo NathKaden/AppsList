@@ -2,9 +2,7 @@ QWidget {
     color: #ffffff;
     font-size: 15px;
 }
-#centralWidget {
-    background-color: #29272b;
-}
+
 QLabel {
     qproperty-alignment: AlignLeft;  /* Alignement à gauche */
 }
@@ -64,4 +62,18 @@ QStatusBar::item {
 QStatusBar QLabel {
     background-color: transparent;
     padding: 0px 10 px;
+}
+
+
+#centralWidget {
+    background-color: #29272b;
+    margin: 0;
+}
+#disque {
+    background-color: transparent;
+    qproperty-alignment: AlignTop;
+    border-right: 3px solid grey;
+    padding-right: 10px;
+    margin-right: 10px;
+    width: fit-content;
 }

@@ -3,7 +3,7 @@ import os
 import json
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMenuBar, QMenu, QMainWindow, QStatusBar, QLabel, \
-    QHBoxLayout
+    QHBoxLayout, QSizePolicy
 from PyQt6.QtCore import pyqtSignal, Qt
 
 # Import des fonctions nécessaires
@@ -68,11 +68,10 @@ class MainWindow(QMainWindow):
         menuBar.addMenu(viewMenu)
         menuBar.addMenu(otherMenu)
 
-        lay = QVBoxLayout()
+        central_layout = QVBoxLayout()
         centralWidget = QWidget()
-        centralWidget.setObjectName("centralWidget")  # Ajout du nom d'objet
-        centralWidget.setLayout(lay)
-
+        centralWidget.setObjectName("centralWidget")
+        centralWidget.setLayout(central_layout)
         self.setCentralWidget(centralWidget)
 
     def __applyTheme(self):
@@ -111,29 +110,41 @@ class MainWindow(QMainWindow):
 
         for disk_name, launchers in BDD.items():
             disk_layout = QHBoxLayout()
-            disk_layout.setContentsMargins(10, 5, 10, 5)  # Marges intérieures du disque
-            disk_layout.setSpacing(10)  # Espacement entre le nom du disque et les launchers
+            disk_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges intérieures du disque
+            disk_layout.setSpacing(0)  # Aucun espacement entre le nom du disque et les launchers
 
-            # Layout pour le nom du disque à gauche
-            disk_label = QLabel(f'<b>{disk_name}</b>')
+            # Label pour le nom du disque
+            with open("../assets/style.css", "r") as file:
+                css = file.read()
+
+            style = f"<style>{css}</style>"
+            disk_label = QLabel(f'{style}<b class="disque">{disk_name}</b>')
+            disk_label.setObjectName("disque")
+            disk_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)  # Taille fixe
+            disk_label.adjustSize()
             disk_layout.addWidget(disk_label)
+
+
 
             # Layout pour les launchers à droite
             launchers_layout = QVBoxLayout()
+            launchers_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges pour les launchers
+            launchers_layout.setSpacing(0)  # Aucun espacement entre les launchers
+
             for launcher_name, apps_list in launchers.items():
                 launcher_layout = QHBoxLayout()
-                launcher_layout.setContentsMargins(0, 0, 0, 0)  # Aucune marge pour les launchers
+                launcher_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges pour chaque launcher
+
                 launcher_label = QLabel(f'<u>{launcher_name}</u>')
                 launcher_layout.addWidget(launcher_label)
 
                 # Layout pour les jeux à droite de chaque launcher
-                games_layout = QVBoxLayout()
+                apps_layout = QVBoxLayout()
                 for app in apps_list:
                     game_label = QLabel(f'{app["nom"]} ({app["année"]}) - {app["taille"]} Go')
-                    games_layout.addWidget(game_label)
+                    apps_layout.addWidget(game_label)
 
-                # Ajouter le layout des jeux à la mise en page du launcher
-                launcher_layout.addLayout(games_layout)
+                launcher_layout.addLayout(apps_layout)
                 launchers_layout.addLayout(launcher_layout)
 
             disk_layout.addLayout(launchers_layout)
@@ -141,8 +152,8 @@ class MainWindow(QMainWindow):
 
         centralWidget = QWidget()
         centralWidget.setLayout(central_layout)
+        centralWidget.setObjectName("centralWidget")
         self.setCentralWidget(centralWidget)
-
 
 if __name__ == "__main__":
     print("Lancement de l'application")
