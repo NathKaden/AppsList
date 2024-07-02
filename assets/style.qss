@@ -5,6 +5,9 @@ QWidget {
 #centralWidget {
     background-color: #29272b;
 }
+QLabel {
+    qproperty-alignment: AlignLeft;  /* Alignement à gauche */
+}
 
 QMenuBar {
     background: qlineargradient(x1:0, y1:0, x2:0.5, y2:0,

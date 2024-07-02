@@ -1,10 +1,9 @@
+.main {
+    background-color: #2C2B2E;
+}
 
-.disque {
-    font-size: 18px;
-    font-weight: bold;
-    color: #FFA500; /* Exemple de couleur orange */
-    background-color: #1E90FF; /* Exemple de couleur bleue */
-    padding: 10px;
-    border: 1px solid #000000;
-    border-radius: 5px;
+
+
+#disque {
+    background-color: #2C2B2E;
 }

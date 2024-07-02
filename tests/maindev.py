@@ -1,31 +1,69 @@
+import sys
 from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMenuBar, QMenu, QMainWindow, QStatusBar, QLabel
-from PyQt6.QtCore import pyqtSignal, Qt, QIODevice, QFile
-from functions.functions import *
+from PyQt6.QtWidgets import QApplication, QVBoxLayout, QHBoxLayout, QWidget, QMenuBar, QMenu, QMainWindow, QStatusBar, QLabel
+from PyQt6.QtCore import pyqtSignal, Qt
 
-from functions.functions import loadBDD
-
-def load_stylesheet():
-    style_file = QFile("../assets/styles.css")  # Nom du fichier CSS
-    style_sheet = style_file.readAll()
-    QApplication.instance().setStyleSheet(bytes(style_sheet).decode("utf-8"))
-    style_file.close()
-    print("Impossible de charger la feuille de style.")
+# Exemple de données
+disques = {
+    "SSD main": {
+        "Epic Games": [
+            {
+                "nom": "RL",
+                "taille": 26.2,
+                "année": 2015
+            }
+        ],
+        "Steam": [
+            {
+                "nom": "Ratchet",
+                "taille": 39.3,
+                "année": 2023
+            },
+            {
+                "nom": "Portal Source_Unpack",
+                "taille": 9.5,
+                "année": 2007
+            }
+        ]
+    },
+    "SSD Sam": {
+        "Battle.net": [
+            {
+                "nom": "Modern Warfare",
+                "année": 2019,
+                "taille": 150
+            }
+        ],
+        "EA": [
+            {
+                "nom": "NFS : The Run",
+                "année": 2011,
+                "taille": 15.4
+            },
+            {
+                "nom": "NFS : Payback",
+                "année": 2017,
+                "taille": 27.9
+            }
+        ]
+    }
+}
 
 class MainWindow(QMainWindow):
+    changedToDark = pyqtSignal(bool)
+
     def __init__(self):
         super().__init__()
         self.__initUi()
         self.__applyTheme()
-        self.__applyBDD()
+        self.__populateDisks()
 
     def __initUi(self):
-        self.setWindowTitle("GameList")
-        self.setWindowIcon(QIcon('../assets/icon.jpg'))
-        self.setGeometry(200, 200, 750, 480)
-
         menuBar = QMenuBar(self)
         self.setMenuBar(menuBar)
+        self.setWindowTitle("AppsList")
+        self.setWindowIcon(QIcon('../assets/icon.jpg'))
+        self.setGeometry(400, 300, 750, 480)  # (x, y, width, height)
 
         fileMenu = QMenu('Fichier', self)
         newAction = QAction('Nouveau', self)
@@ -69,85 +107,50 @@ class MainWindow(QMainWindow):
         menuBar.addMenu(viewMenu)
         menuBar.addMenu(otherMenu)
 
-        centralWidget = QWidget()
-        self.setCentralWidget(centralWidget)
+        self.centralWidget = QWidget()
+        self.setCentralWidget(self.centralWidget)
+        self.mainLayout = QVBoxLayout(self.centralWidget)
+        self.mainLayout.setContentsMargins(10, 10, 10, 10)  # Marges extérieures
 
     def __applyTheme(self):
-        stylesheet = """
-        QWidget {
-            color: #ffffff;
-            font-size: 15px;
-        }
-        QMenuBar {
-            background: qlineargradient(x1:0, y1:0, x2:0.5, y2:0,
-                    stop:0 #3b3b54, stop:1 #353336);
-            color: #ffffff;
-            font-size: 15px;
-            border-bottom: 1px solid;
-            border-top: 1px solid #2d2b2e;
-            padding-top: 1px;
-        }
-        QMenuBar::item {
-            background-color: transparent;
-            padding: 4px 8px;
-        }
-        QMenuBar::item:selected {
-            background-color: rgba(255,255,255,40);
-        }
-        QMenuBar::item:hover {
-            background-color: transparent;
-        }
-        QMenu {
-            background-color: #2e2e2e;
-            color: #ffffff;
-            padding: 4px;
-            border: 1px solid dimgrey;
-        }
-        QMenu::item {
-            padding: 0 30px 0 20px;
-        }
-        QMenu::item:selected {
-            background-color: #555555;
-            border-radius: 5px;
-        }
-        """
+        with open('../assets/style.qss', 'r') as file:
+            stylesheet = file.read()
         self.setStyleSheet(stylesheet)
 
-    def __applyBDD(self):
-        statusbar = QStatusBar()
-        self.setStatusBar(statusbar)
+    def __populateDisks(self):
+        for disk_name, launchers in disques.items():
+            disk_layout = QHBoxLayout()
+            disk_layout.setContentsMargins(10, 5, 10, 5)  # Marges intérieures du disque
+            disk_layout.setSpacing(10)  # Espacement entre le nom du disque et les launchers
 
-        # Exemple de chargement de données et affichage dans la barre de statut
-        path_bdd = "chemin_vers_votre_base_de_donnees"
-        BDD = loadBDD(path_bdd)
+            # Layout pour le nom du disque à gauche
+            disk_label = QLabel(f'<b>{disk_name}</b>')
+            disk_layout.addWidget(disk_label)
 
-        disques = ["Disque 1", "Disque 2", "Disque 3"]  # Exemple de données
+            # Layout pour les launchers à droite
+            launchers_layout = QVBoxLayout()
+            for launcher_name, games_list in launchers.items():
+                launcher_layout = QHBoxLayout()
+                launcher_layout.setContentsMargins(0, 0, 0, 0)  # Aucune marge pour les launchers
+                launcher_label = QLabel(f'<u>{launcher_name}</u>')
+                launcher_layout.addWidget(launcher_label)
 
-        formatted_list = ""
-        for index, disque in enumerate(disques):
-            if index > 0:
-                formatted_list += "   "
-            formatted_list += f'<span style="font-weight:900; color: red;">| </span>{disque}'
+                # Layout pour les jeux à droite de chaque launcher
+                games_layout = QVBoxLayout()
+                for game in games_list:
+                    game_label = QLabel(f'{game["nom"]} ({game["année"]}) - {game["taille"]} GB')
+                    games_layout.addWidget(game_label)
 
-        list_label = QLabel(f'<html>{formatted_list}</html>')
-        statusbar.addWidget(list_label)
+                # Ajouter le layout des jeux à la mise en page du launcher
+                launcher_layout.addLayout(games_layout)
+                launchers_layout.addLayout(launcher_layout)
 
-        # Exemple d'utilisation d'un QLabel pour afficher des données dans la fenêtre principale
-        listdisques_label = QLabel(f'<html><div class="disque">{"<br>".join(disques)}</div></html>')
-        listdisques_label.setObjectName("centralWidget")
-        self.setCentralWidget(listdisques_label)
+            disk_layout.addLayout(launchers_layout)
+            self.mainLayout.addLayout(disk_layout)
 
-
-def main():
-    import sys
+if __name__ == "__main__":
+    print("Lancement de l'application")
     app = QApplication(sys.argv)
-
-    # Charger la feuille de style CSS
-    load_stylesheet()
-
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
-
-if __name__ == "__main__":
-    main()
