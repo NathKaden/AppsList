@@ -1,6 +1,8 @@
 import sys
 import os
 import json
+import webbrowser
+
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMenuBar, QMenu, QMainWindow, QStatusBar, QLabel, \
     QHBoxLayout, QSizePolicy
@@ -56,8 +58,12 @@ class MainWindow(QMainWindow):
         viewMenu.addAction(languageAction)
 
         otherMenu = QMenu('Autres', self)
-        commandAction = QAction('Commande (terminal)', self)
+        commandAction = QAction('Terminal', self)
+        commandAction.setStatusTip('  Ouvrir le GitHub')
+        commandAction.triggered.connect(self.open_terminal)
         githubAction = QAction('GitHub', self)
+        githubAction.setStatusTip('  Ouvrir le GitHub')
+        githubAction.triggered.connect(self.open_github)
         creditsAction = QAction('Crédits', self)
         otherMenu.addAction(commandAction)
         otherMenu.addAction(githubAction)
@@ -68,11 +74,19 @@ class MainWindow(QMainWindow):
         menuBar.addMenu(viewMenu)
         menuBar.addMenu(otherMenu)
 
+
+
         central_layout = QVBoxLayout()
         centralWidget = QWidget()
         centralWidget.setObjectName("centralWidget")
         centralWidget.setLayout(central_layout)
         self.setCentralWidget(centralWidget)
+
+    def open_github(self):
+        webbrowser.open('https://github.com/NathKaden/AppsList')
+        print("Github")
+    def open_terminal(self):
+        print("a")
 
     def __applyTheme(self):
         with open('../assets/style.qss', 'r') as file:
@@ -142,8 +156,8 @@ class MainWindow(QMainWindow):
                 # Layout pour les jeux à droite de chaque launcher
                 apps_layout = QVBoxLayout()
                 for app in apps_list:
-                    game_label = QLabel(f'{app["nom"]} ({app["année"]}) - {app["taille"]} Go')
-                    apps_layout.addWidget(game_label)
+                    app_label = QLabel(f'{app["nom"]} ({app["année"]}) - {app["taille"]} Go')
+                    apps_layout.addWidget(app_label)
 
                 launcher_layout.addLayout(apps_layout)
                 launchers_layout.addLayout(launcher_layout)

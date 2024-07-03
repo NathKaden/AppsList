@@ -1,13 +1,15 @@
 import sys
 import os
 import json
+import webbrowser
+
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMenuBar, QMenu, QMainWindow, QStatusBar, QLabel, \
-    QHBoxLayout, QSizePolicy
+    QHBoxLayout, QSizePolicy, QLineEdit
 from PyQt6.QtCore import pyqtSignal, Qt
 
 # Import des fonctions nécessaires
-from functions.functions import loadBDD, getDisques, getNbApps, get_color
+from functions.functions import *
 
 
 class MainWindow(QMainWindow):
@@ -56,8 +58,12 @@ class MainWindow(QMainWindow):
         viewMenu.addAction(languageAction)
 
         otherMenu = QMenu('Autres', self)
-        commandAction = QAction('Commande (terminal)', self)
+        commandAction = QAction('Terminal', self)
+        commandAction.setStatusTip('  Ouvrir le Terminal')
+        commandAction.triggered.connect(self.open_terminal)
         githubAction = QAction('GitHub', self)
+        githubAction.setStatusTip('  Ouvrir le GitHub')
+        githubAction.triggered.connect(self.open_github)
         creditsAction = QAction('Crédits', self)
         otherMenu.addAction(commandAction)
         otherMenu.addAction(githubAction)
@@ -72,7 +78,26 @@ class MainWindow(QMainWindow):
         centralWidget = QWidget()
         centralWidget.setObjectName("centralWidget")
         centralWidget.setLayout(central_layout)
+        self.input_open = False
         self.setCentralWidget(centralWidget)
+
+    def open_github(self):
+        webbrowser.open('https://github.com/NathKaden/AppsList')
+        print("Github")
+    def open_terminal(self):
+        if not self.input_open:
+            self.input = QLineEdit(self)
+            self.input.returnPressed.connect(self.print_text)
+            self.centralWidget().layout().addWidget(self.input)
+            self.input.setFocus()
+            self.input_open = True  # Marquer le champ de saisie comme ouvert
+
+    def print_text(self):
+        text = self.input.text()
+
+        print(terminal(text))
+        self.input.deleteLater()  # Supprimer le champ de saisie
+        self.input_open = False  # Marquer le champ de saisie comme fermé
 
     def __applyTheme(self):
         with open('../assets/style.qss', 'r') as file:
@@ -120,10 +145,9 @@ class MainWindow(QMainWindow):
             style = f"<style>{css}</style>"
             disk_label = QLabel(f'{style}<b class="disque">{disk_name}</b>')
             disk_label.setObjectName("disque")
-            disk_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)  # Taille fixe
+            disk_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
             disk_label.adjustSize()
             disk_layout.addWidget(disk_label)
-
 
 
             # Layout pour les launchers à droite
@@ -136,13 +160,15 @@ class MainWindow(QMainWindow):
                 launcher_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges pour chaque launcher
 
                 launcher_label = QLabel(f'<u>{launcher_name}</u>')
+                launcher_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+                launcher_label.setObjectName("disque")
                 launcher_layout.addWidget(launcher_label)
 
                 # Layout pour les jeux à droite de chaque launcher
                 apps_layout = QVBoxLayout()
                 for app in apps_list:
-                    game_label = QLabel(f'{app["nom"]} ({app["année"]}) - {app["taille"]} Go')
-                    apps_layout.addWidget(game_label)
+                    app_label = QLabel(f'{app["nom"]} ({app["année"]}) - {app["taille"]} Go')
+                    apps_layout.addWidget(app_label)
 
                 launcher_layout.addLayout(apps_layout)
                 launchers_layout.addLayout(launcher_layout)
@@ -156,7 +182,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(centralWidget)
 
 if __name__ == "__main__":
-    print("Lancement de l'application")
+    print("App ouverte")
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

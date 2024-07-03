@@ -32,10 +32,12 @@ QMenuBar::item:hover {
 }
 
 QMenu {
-    background-color: #2e2e2e;
+    background-color: #29272b;
     color: #ffffff;
     padding: 4px;
     border: 1px solid dimgrey;
+    border-radius: 5px;
+    overflow: hidden;
 }
 
 QMenu::item {
@@ -43,7 +45,7 @@ QMenu::item {
 }
 
 QMenu::item:selected {
-    background-color: #555555;
+    background-color: #59596B;
     border-radius: 5px;
 }
 
@@ -71,9 +73,25 @@ QStatusBar QLabel {
 }
 #disque {
     background-color: transparent;
-    qproperty-alignment: AlignTop;
+    qproperty-alignment: AlignRight;
     border-right: 3px solid grey;
     padding-right: 10px;
     margin-right: 10px;
     width: fit-content;
+}
+
+QLineEdit {
+    background-color: #302E33;
+    font-family: Consolas;
+    border-bottom: 1px solid #ccc;      /* Bordure avec couleur grise */
+    padding: 5px;                /* Espacement interne */
+    border-radius: 3px;          /* Coins arrondis */
+    font-size: 14px;             /* Taille de police */
+    color: white;                 /* Couleur du texte */
+    border-color: lavender;
+    selection-background-color: #59596B;
+}
+
+QLineEdit:focus {
+    border-color: #b4b4ee;       /* Couleur de la bordure lorsque le champ a le focus */
 }

@@ -167,4 +167,33 @@ def edit(item, BDD):
 
 #%%
 
+def terminal(cmd):
+    arg1 = ['help', 'print', 'add', 'delete', 'edit']  # Choses possibles
+    arg2 = ['C', 'D', 'E', 'F', 'G']  # Disques possibles
+
+    # Si la commande est vide
+    if cmd == "":
+        cmd = "vide"
+        return "Erreur : entrée vide"
+
+    else:
+        cmds = cmd.split(' ')
+        print("Nombre d'arguments :", len(cmds))
+
+        # Parcourir chaque argument dans cmds
+        for arg in cmds:
+            # Vérifier si l'argument est dans arg1
+            if arg in arg1:
+                print('Argument 1 OK')
+            # Vérifier si l'argument est dans arg2
+            elif arg in arg2:
+                print('Argument', arg, 'dans arg2 OK')
+            else:
+                return f"Erreur : argument '{arg}' non valide"
+
+    return str(cmds)
+
+
+#%%
+
 print("Fonctions lues")
