@@ -11,7 +11,6 @@ from PyQt6.QtCore import pyqtSignal, Qt
 # Import des fonctions nécessaires
 from functions.functions import *
 
-
 class MainWindow(QMainWindow):
     changedToDark = pyqtSignal(bool)
 
@@ -86,11 +85,11 @@ class MainWindow(QMainWindow):
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
             settings = json.load(fichiersettings)
         path_bdd = settings["path_bdd"]
-        BDD = loadBDD(path_bdd)
+        self.BDD = loadBDD(path_bdd)
 
         # Barre de statut
         statusbar = QStatusBar()
-        disques = getDisques(BDD)
+        disques = getDisques(self.BDD)
         formatted_list = ""
         for index, disque in enumerate(disques):
             if index > 0:
@@ -101,7 +100,7 @@ class MainWindow(QMainWindow):
         list_label.setOpenExternalLinks(True)
         statusbar.addWidget(list_label)
         bddnamestr = os.path.splitext(os.path.basename(path_bdd))[0]
-        r_label = bddnamestr + "  -  " + str(getNbApps(BDD)) + " App(s)"
+        r_label = bddnamestr + "  -  " + str(getNbApps(self.BDD)) + " App(s)"
         right_label = QLabel(r_label)
         statusbar.addPermanentWidget(list_label, 1)
         statusbar.addPermanentWidget(right_label)
@@ -110,7 +109,7 @@ class MainWindow(QMainWindow):
         # Widget central
         central_layout = QVBoxLayout()
 
-        for index, (disk_name, launchers) in enumerate(BDD.items()):
+        for index, (disk_name, launchers) in enumerate(self.BDD.items()):
             disk_layout = QHBoxLayout()
             disk_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges intérieures du disque
             disk_layout.setSpacing(0)  # Aucun espacement entre le nom du disque et les launchers
@@ -137,7 +136,7 @@ class MainWindow(QMainWindow):
 
 
 
-    # Layout pour les launchers à droite
+            # Layout pour les launchers à droite
             launchers_layout = QVBoxLayout()
             launchers_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges pour les launchers
             launchers_layout.setSpacing(0)  # Aucun espacement entre les launchers
@@ -181,7 +180,7 @@ class MainWindow(QMainWindow):
 
     def print_text(self):
         text = self.input.text()
-        print(terminal(text,BDD))
+        print(terminal(text, self.BDD))
         print("terminal exit")
         self.input.deleteLater()  # Supprimer le champ de saisie
         self.input_open = False  # Marquer le champ de saisie comme fermé
