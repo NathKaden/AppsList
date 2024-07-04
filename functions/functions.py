@@ -151,7 +151,7 @@ supr une app à la bdd
 '''
 
 
-def delete(item, BDD):
+def deleteApp(item, BDD):
     return ''
 
 
@@ -161,38 +161,64 @@ modifie une app de la bdd
 '''
 
 
-def edit(item, BDD):
+def editApp(item, BDD):
     return ''
 
 
 #%%
 
-def terminal(cmd):
-    arg1 = ['help', 'print', 'add', 'delete', 'edit']  # Choses possibles
-    arg2 = ['C', 'D', 'E', 'F', 'G']  # Disques possibles
+def terminal(cmd, BDD):
+    arg1 = ['help', 'print', 'add', 'delete']  # Choses possibles
+    print(BDD)
+    arg2 = getDisques(BDD)  # Disques possibles
 
     # Si la commande est vide
     if cmd == "":
-        cmd = "vide"
-        return "Erreur : entrée vide"
+        return "Erreur : entrée vide | Voir help pour plus d'informations"
 
-    else:
-        cmds = cmd.split(' ')
-        print("Nombre d'arguments :", len(cmds))
+    cmds = cmd.split(' ')
+    print("Nombre d'arguments :", len(cmds))
 
-        # Parcourir chaque argument dans cmds
-        for arg in cmds:
-            # Vérifier si l'argument est dans arg1
-            if arg in arg1:
-                print('Argument 1 OK')
-            # Vérifier si l'argument est dans arg2
-            elif arg in arg2:
-                print('Argument', arg, 'dans arg2 OK')
-            else:
+    if cmds[0] not in arg1:
+        return "Erreur : commande invalide | Voir help pour plus d'informations"
+
+    if cmds[0] == "help":
+        return f"Commandes possibles : {', '.join(arg1)}"
+
+    # Dictionnaire de commandes
+    command_dict = {
+        'add': addApp,
+        'delete': deleteApp,
+        'edit': editApp
+    }
+
+    # Vérifier les arguments supplémentaires pour les commandes add, delete et edit
+    if cmds[0] in command_dict:
+        for arg in cmds[1:]:
+            if arg not in arg2:
                 return f"Erreur : argument '{arg}' non valide"
 
-    return str(cmds)
+        result = command_dict[cmds[0]]
+        result()
+        return "Exit 0"
 
+    # Traitement de la commande print (ou toute autre commande future sans arguments supplémentaires)
+    if cmds[0] == 'print':
+        # Ajoutez ici la logique pour la commande print si nécessaire
+        return "Print command executed"
+
+    return "Erreur : commande non reconnue"
+
+# Parcourir chaque argument dans cmds
+# for arg in cmds:
+#     # Vérifier si l'argument est dans arg1
+#     if arg in arg1:
+#         print('Argument 1 OK')
+#     # Vérifier si l'argument est dans arg2
+#     elif arg in arg2:
+#         print('Argument', arg, 'dans arg2 OK')
+#     else:
+#         return f"Erreur : argument '{arg}' non valide"
 
 #%%
 

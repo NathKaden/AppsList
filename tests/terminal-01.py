@@ -81,29 +81,6 @@ class MainWindow(QMainWindow):
         self.input_open = False
         self.setCentralWidget(centralWidget)
 
-    def open_github(self):
-        webbrowser.open('https://github.com/NathKaden/AppsList')
-        print("Github")
-    def open_terminal(self):
-        if not self.input_open:
-            self.input = QLineEdit(self)
-            self.input.returnPressed.connect(self.print_text)
-            self.centralWidget().layout().addWidget(self.input)
-            self.input.setFocus()
-            self.input_open = True  # Marquer le champ de saisie comme ouvert
-
-    def print_text(self):
-        text = self.input.text()
-
-        print(terminal(text))
-        self.input.deleteLater()  # Supprimer le champ de saisie
-        self.input_open = False  # Marquer le champ de saisie comme fermé
-
-    def __applyTheme(self):
-        with open('../assets/style.qss', 'r') as file:
-            stylesheet = file.read()
-        self.setStyleSheet(stylesheet)
-
     def __applyBDD(self):
         path_settings = "../assets/settings.json"
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
@@ -117,14 +94,14 @@ class MainWindow(QMainWindow):
         formatted_list = ""
         for index, disque in enumerate(disques):
             if index > 0:
-                formatted_list += "   "
-            formatted_list += f'<span style="font-weight:900; color: {get_color(index)};">| </span>{disque}'
+                formatted_list += "   "
+            formatted_list += f'<span style="font-weight:900; color: {get_color(index)};">| </span>{disque}'
 
         list_label = QLabel(f'<html>{formatted_list}</html>')
         list_label.setOpenExternalLinks(True)
         statusbar.addWidget(list_label)
         bddnamestr = os.path.splitext(os.path.basename(path_bdd))[0]
-        r_label = bddnamestr + "  -  " + str(getNbApps(BDD)) + " App(s)"
+        r_label = bddnamestr + "  -  " + str(getNbApps(BDD)) + " App(s)"
         right_label = QLabel(r_label)
         statusbar.addPermanentWidget(list_label, 1)
         statusbar.addPermanentWidget(right_label)
@@ -133,24 +110,34 @@ class MainWindow(QMainWindow):
         # Widget central
         central_layout = QVBoxLayout()
 
-        for disk_name, launchers in BDD.items():
+        for index, (disk_name, launchers) in enumerate(BDD.items()):
             disk_layout = QHBoxLayout()
             disk_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges intérieures du disque
             disk_layout.setSpacing(0)  # Aucun espacement entre le nom du disque et les launchers
 
-            # Label pour le nom du disque
+            # Charger le CSS depuis le fichier
             with open("../assets/style.css", "r") as file:
                 css = file.read()
 
+            # Obtenir la couleur pour la bordure
+
+
+            # Créer le style dynamique avec la couleur de bordure droite
             style = f"<style>{css}</style>"
-            disk_label = QLabel(f'{style}<b class="disque">{disk_name}</b>')
+            disk_label = QLabel(f'{style}<b>{disk_name}</b>')
             disk_label.setObjectName("disque")
             disk_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
             disk_label.adjustSize()
+            disk_label.setStyleSheet(f"""
+        QLabel#disque {{
+            border-right: 3px solid {get_color(index)} !important;
+        }}
+    """)
             disk_layout.addWidget(disk_label)
 
 
-            # Layout pour les launchers à droite
+
+    # Layout pour les launchers à droite
             launchers_layout = QVBoxLayout()
             launchers_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges pour les launchers
             launchers_layout.setSpacing(0)  # Aucun espacement entre les launchers
@@ -180,6 +167,29 @@ class MainWindow(QMainWindow):
         centralWidget.setLayout(central_layout)
         centralWidget.setObjectName("centralWidget")
         self.setCentralWidget(centralWidget)
+
+    def open_github(self):
+        webbrowser.open('https://github.com/NathKaden/AppsList')
+        print("Github")
+    def open_terminal(self):
+        if not self.input_open:
+            self.input = QLineEdit(self)
+            self.input.returnPressed.connect(self.print_text)
+            self.centralWidget().layout().addWidget(self.input)
+            self.input.setFocus()
+            self.input_open = True  # Marquer le champ de saisie comme ouvert
+
+    def print_text(self):
+        text = self.input.text()
+        print(terminal(text,BDD))
+        print("terminal exit")
+        self.input.deleteLater()  # Supprimer le champ de saisie
+        self.input_open = False  # Marquer le champ de saisie comme fermé
+
+    def __applyTheme(self):
+        with open('../assets/style.qss', 'r') as file:
+            stylesheet = file.read()
+        self.setStyleSheet(stylesheet)
 
 if __name__ == "__main__":
     print("App ouverte")
