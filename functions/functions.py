@@ -27,7 +27,7 @@ ex : ./BDDTest.json
 def editBDD(*args):
     if args == ():
         print('Args vide')
-        path = input("Indiquer le chemin d'accès (exemple : './BDDTest.json') :")
+        path = input("Indiquer le chemin d'accès (exemple : './BDD.json') :")
     else:
         path = args
     if path == "":
@@ -142,7 +142,7 @@ ajoute une app à la bdd
 
 
 def addApp(item, BDD):
-    return ''
+    return 'add'
 
 
 #%%
@@ -169,7 +169,6 @@ def editApp(item, BDD):
 
 def terminal(cmd, BDD):
     arg1 = ['help', 'print', 'add', 'delete']  # Choses possibles
-    print(BDD)
     arg2 = getDisques(BDD)  # Disques possibles
 
     # Si la commande est vide
@@ -177,7 +176,7 @@ def terminal(cmd, BDD):
         return "Erreur : entrée vide | Voir help pour plus d'informations"
 
     cmds = cmd.split(' ')
-    print("Nombre d'arguments :", len(cmds))
+    print(len(cmds), " Argument(s)")
 
     if cmds[0] not in arg1:
         return "Erreur : commande invalide | Voir help pour plus d'informations"
@@ -196,7 +195,7 @@ def terminal(cmd, BDD):
     if cmds[0] in command_dict:
         for arg in cmds[1:]:
             if arg not in arg2:
-                return f"Erreur : argument '{arg}' non valide"
+                return f"Erreur : argument 2 '{arg}' non valide"
 
         result = command_dict[cmds[0]]
         result()
@@ -205,9 +204,9 @@ def terminal(cmd, BDD):
     # Traitement de la commande print (ou toute autre commande future sans arguments supplémentaires)
     if cmds[0] == 'print':
         # Ajoutez ici la logique pour la commande print si nécessaire
-        return "Print command executed"
+        return f"Disques : {', '.join(getDisques(BDD))}"
 
-    return "Erreur : commande non reconnue"
+    return "Erreur : commande invalide"
 
 # Parcourir chaque argument dans cmds
 # for arg in cmds:
