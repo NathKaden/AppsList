@@ -1,5 +1,6 @@
 import json
 import os
+import shlex
 
 path_settings = "../assets/settings.json"
 
@@ -169,13 +170,14 @@ def editApp(item, BDD):
 
 def terminal(cmd, BDD):
     arg1 = ['help', 'print', 'add', 'delete']  # Choses possibles
-    arg2 = getDisques(BDD)  # Disques possibles
+    disques = getDisques(BDD)  # Disques possibles
 
     # Si la commande est vide
     if cmd == "":
         return "Erreur : entrée vide | Voir help pour plus d'informations"
 
-    cmds = cmd.split(' ')
+    cmds = shlex.split(cmd)
+    print(cmds)
     print(len(cmds), " Argument(s)")
 
     if cmds[0] not in arg1:
@@ -193,12 +195,14 @@ def terminal(cmd, BDD):
 
     # Vérifier les arguments supplémentaires pour les commandes add, delete et edit
     if cmds[0] in command_dict:
-        for arg in cmds[1:]:
-            if arg not in arg2:
-                return f"Erreur : argument 2 '{arg}' non valide"
+        # for arg in cmds[1:]:
+        print(cmds[1])
+        if cmds[1] not in disques:
+            return f"Erreur : argument 2 '{cmds[1]}' non valide"
 
         result = command_dict[cmds[0]]
-        result()
+        # result()
+        print("arg2 valide")
         return "Exit 0"
 
     # Traitement de la commande print (ou toute autre commande future sans arguments supplémentaires)
