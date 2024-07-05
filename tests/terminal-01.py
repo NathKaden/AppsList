@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
         # Widget central
         central_layout = QVBoxLayout()
 
-        for index, (disk_name, launchers) in enumerate(self.BDD.items()):
+        for index, (nom_disque, launchers) in enumerate(self.BDD.items()):
             disk_layout = QHBoxLayout()
             disk_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges intérieures du disque
             disk_layout.setSpacing(0)  # Aucun espacement entre le nom du disque et les launchers
@@ -120,13 +120,13 @@ class MainWindow(QMainWindow):
 
             style = f"<style>{css}</style>"
 
-            if 'ssd' in disk_name.lower():
+            if 'ssd' in nom_disque.lower():
                 image_disque = "../assets/ssd.png"
             else:
                 image_disque = "../assets/hdd.png"
             # Images à convertir en svg!
 
-            disk_label = QLabel(f'{style}<img src="{image_disque}" width="25" height="25" style="vertical-align: middle;" /><b> {disk_name}</b>')
+            disk_label = QLabel(f'{style}<img src="{image_disque}" width="25" height="25" style="vertical-align: middle;" /><b> {nom_disque}</b>')
             disk_label.setObjectName("disque")
             disk_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
             disk_label.adjustSize()

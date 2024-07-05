@@ -143,6 +143,23 @@ ajoute une app à la bdd
 
 
 def addApp(item, BDD):
+    # Un exemple : add "SSD Main" "Rocket league" "Epic Games" 28 2015
+    # 28 Go et année 2015 facultatif
+    # item = [disque, launcher, app, taille?, annee?]
+
+    # with open(self.settings["path_bdd"], "r", encoding='utf-8') as file:
+    #     BDD = json.load(file)
+
+    if item[3] in item and item[4] in item:
+        app = {
+            "nom": item[2],
+            "taille": item[3],
+            "année": item[4]
+        }
+    # BDD[disque][launcher].append(app)
+
+    # with open("bdd.json", "w", encoding='utf-8') as file:
+    #     json.dump(BDD, file, ensure_ascii=False, indent=4)
     return 'add'
 
 
@@ -153,7 +170,7 @@ supr une app à la bdd
 
 
 def deleteApp(item, BDD):
-    return ''
+    return item
 
 
 #%%
@@ -198,12 +215,21 @@ def terminal(cmd, BDD):
         # for arg in cmds[1:]:
         print(cmds[1])
         if cmds[1] not in disques:
-            return f"Erreur : argument 2 '{cmds[1]}' non valide"
+            return f"Erreur : Disque '{cmds[1]}' non valide"
 
         result = command_dict[cmds[0]]
-        # result()
+        launchers = [
+            "Steam",
+            "Epic Games",
+            "Battle.net",
+            "EA",
+            "Ubisoft",
+            "Rockstar",
+            "Microsoft Store"
+        ]
+
         print("arg2 valide")
-        return "Exit 0"
+        return result()
 
     # Traitement de la commande print (ou toute autre commande future sans arguments supplémentaires)
     if cmds[0] == 'print':
@@ -211,6 +237,7 @@ def terminal(cmd, BDD):
         return f"Disques : {', '.join(getDisques(BDD))}"
 
     return "Erreur : commande invalide"
+
 
 # Parcourir chaque argument dans cmds
 # for arg in cmds:
