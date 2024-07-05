@@ -118,12 +118,15 @@ class MainWindow(QMainWindow):
             with open("../assets/style.css", "r") as file:
                 css = file.read()
 
-            # Obtenir la couleur pour la bordure
-
-
-            # Créer le style dynamique avec la couleur de bordure droite
             style = f"<style>{css}</style>"
-            disk_label = QLabel(f'{style}<b>💽 {disk_name}</b>')
+
+            if 'ssd' in disk_name.lower():
+                image_disque = "../assets/ssd.png"
+            else:
+                image_disque = "../assets/hdd.png"
+            # Images à convertir en svg!
+
+            disk_label = QLabel(f'{style}<img src="{image_disque}" width="25" height="25" style="vertical-align: middle;" /><b> {disk_name}</b>')
             disk_label.setObjectName("disque")
             disk_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
             disk_label.adjustSize()
