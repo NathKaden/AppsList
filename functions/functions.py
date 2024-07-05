@@ -177,7 +177,7 @@ def terminal(cmd, BDD):
         return "Erreur : entrée vide | Voir help pour plus d'informations"
 
     cmds = shlex.split(cmd)
-    print(cmds)
+    print(f"Commandes : {', '.join(cmds)}")
     print(len(cmds), " Argument(s)")
 
     if cmds[0] not in arg1:

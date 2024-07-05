@@ -83,8 +83,8 @@ class MainWindow(QMainWindow):
     def __applyBDD(self):
         path_settings = "../assets/settings.json"
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
-            settings = json.load(fichiersettings)
-        path_bdd = settings["path_bdd"]
+            self.settings = json.load(fichiersettings)
+        path_bdd = self.settings["path_bdd"]
         self.BDD = loadBDD(path_bdd)
 
         # Barre de statut
@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
 
             # Créer le style dynamique avec la couleur de bordure droite
             style = f"<style>{css}</style>"
-            disk_label = QLabel(f'{style}<b>{disk_name}</b>')
+            disk_label = QLabel(f'{style}<b>💽 {disk_name}</b>')
             disk_label.setObjectName("disque")
             disk_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
             disk_label.adjustSize()
@@ -134,9 +134,16 @@ class MainWindow(QMainWindow):
     """)
             disk_layout.addWidget(disk_label)
 
+            launcher_styles = {
+                "Epic Games": "color: white;",
+                "Steam": "color: #8aa5bf;",
+                "Battle.net": "color: #8ac7ff;",
+                "EA": "color: #ffa3a3;",
+                # Ajoutez d'autres styles pour d'autres launchers si nécessaire
+            }
 
+            default_style = "color: lightgrey;"
 
-            # Layout pour les launchers à droite
             launchers_layout = QVBoxLayout()
             launchers_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges pour les launchers
             launchers_layout.setSpacing(0)  # Aucun espacement entre les launchers
@@ -145,9 +152,11 @@ class MainWindow(QMainWindow):
                 launcher_layout = QHBoxLayout()
                 launcher_layout.setContentsMargins(0, 0, 0, 0)  # Supprime les marges pour chaque launcher
 
-                launcher_label = QLabel(f'<u>{launcher_name}</u>')
+                launcher_style = launcher_styles.get(launcher_name, default_style)
+                launcher_label = QLabel(f'<b>{launcher_name}</b>')
                 launcher_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
                 launcher_label.setObjectName("disque")
+                launcher_label.setStyleSheet(launcher_style)
                 launcher_layout.addWidget(launcher_label)
 
                 # Layout pour les jeux à droite de chaque launcher
