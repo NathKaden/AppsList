@@ -138,11 +138,12 @@ class MainWindow(QMainWindow):
             disk_layout.addWidget(disk_label)
 
             launcher_styles = {
-                "Epic Games": "color: white;",
                 "Steam": "color: #8aa5bf;",
+                "Epic Games": "color: white;",
                 "Battle.net": "color: #8ac7ff;",
                 "EA": "color: #ffa3a3;",
-                # Ajoutez d'autres styles pour d'autres launchers si nécessaire
+                "Ubisoft": "color: #9091ad;",
+                "Rockstar": "color: #ffd780;",
             }
 
             default_style = "color: lightgrey;"

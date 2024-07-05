@@ -225,4 +225,10 @@ def terminal(cmd, BDD):
 
 #%%
 
+# fixName(app, type)
+# retourne app ou launcher en bien écrit
+# retourne false si il arrive pas
+
+#%%
+
 print("Fonctions lues")
