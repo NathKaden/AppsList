@@ -143,7 +143,7 @@ ajoute une app à la bdd
 
 
 def addApp(item, BDD):
-    # Un exemple : add "SSD Main" "Rocket league" "Epic Games" 28 2015
+    # Un exemple : add "SSD Main" app "Rocket league" "Epic Games" 28 2015
     # 28 Go et année 2015 facultatif
     # item = [disque, launcher, app, taille?, annee?]
 
@@ -204,36 +204,40 @@ def terminal(cmd, BDD):
         return f"Commandes possibles : {', '.join(arg1)}"
 
     # Dictionnaire de commandes
-    command_dict = {
+    dico_app_cmds = {
         'add': addApp,
         'delete': deleteApp,
         'edit': editApp
     }
+    launchers = [
+        "Steam",
+        "Epic Games",
+        "Battle.net",
+        "EA",
+        "Ubisoft",
+        "Rockstar",
+        "Microsoft Store"  # C'est aussi xbox non ?
+    ]
 
     # Vérifier les arguments supplémentaires pour les commandes add, delete et edit
-    if cmds[0] in command_dict:
+    if cmds[0] in dico_app_cmds:
         # for arg in cmds[1:]:
         print(cmds[1])
-        if cmds[1] not in disques:
-            return f"Erreur : Disque '{cmds[1]}' non valide"
+        if cmds[1] == "app":
+            if cmds[2] not in disques:
+                return f"Erreur : Disque '{cmds[2]}' non valide"
+            if cmds[3] in launchers:
+                return f"Erreur : Launcher '{cmds[3]}' n'est pas une app!"
+            if cmds[4] not in launchers:
+                return f"Erreur : Launcher '{cmds[3]}' non valide | Voir add launcher"
 
-        result = command_dict[cmds[0]]
-        launchers = [
-            "Steam",
-            "Epic Games",
-            "Battle.net",
-            "EA",
-            "Ubisoft",
-            "Rockstar",
-            "Microsoft Store"
-        ]
+            res = dico_app_cmds[cmds[0]]
+            # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
 
-        print("arg2 valide")
-        return result()
+            print("arg2 valide")
+            return res
 
-    # Traitement de la commande print (ou toute autre commande future sans arguments supplémentaires)
     if cmds[0] == 'print':
-        # Ajoutez ici la logique pour la commande print si nécessaire
         return f"Disques : {', '.join(getDisques(BDD))}"
 
     return "Erreur : commande invalide"
