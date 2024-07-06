@@ -191,7 +191,7 @@ def terminal(cmd, BDD):
 
     # Si la commande est vide
     if cmd == "":
-        return "Erreur : entrée vide | Voir help pour plus d'informations"
+        return "Entrée vide | Voir help pour plus d'informations"
 
     cmds = shlex.split(cmd)
     print(f"Commandes : {', '.join(cmds)}")
@@ -199,9 +199,10 @@ def terminal(cmd, BDD):
 
     if cmds[0] not in arg1:
         return "Erreur : commande invalide | Voir help pour plus d'informations"
-
     if cmds[0] == "help":
         return f"Commandes possibles : {', '.join(arg1)}"
+    if cmds[0] == 'print':
+        return f"Disques : {', '.join(getDisques(BDD))}"
 
     # Dictionnaire de commandes
     dico_app_cmds = {
@@ -222,23 +223,26 @@ def terminal(cmd, BDD):
     # Vérifier les arguments supplémentaires pour les commandes add, delete et edit
     if cmds[0] in dico_app_cmds:
         # for arg in cmds[1:]:
-        print(cmds[1])
-        if cmds[1] == "app":
-            if cmds[2] not in disques:
+
+        if cmds[1] and cmds[1] == "app":
+            if cmds[2] and cmds[2] not in disques:
                 return f"Erreur : Disque '{cmds[2]}' non valide"
-            if cmds[3] in launchers:
+            if cmds[3] and cmds[3] in launchers:
                 return f"Erreur : Launcher '{cmds[3]}' n'est pas une app!"
-            if cmds[4] not in launchers:
+            if cmds[4] and cmds[4] not in launchers:
                 return f"Erreur : Launcher '{cmds[3]}' non valide | Voir add launcher"
+
+            if cmds[2] in disques and cmds[3] not in launchers and cmds[4] in launchers:
+                return "Commande Ok"
 
             # res = dico_app_cmds[cmds[0]]
             # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
 
-            print("arg2 valide")
-            return "a"
 
-    if cmds[0] == 'print':
-        return f"Disques : {', '.join(getDisques(BDD))}"
+            return "c pa bon"
+        return "c pa bon"
+
+
 
     return "Erreur : commande invalide"
 
