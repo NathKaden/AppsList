@@ -231,11 +231,11 @@ def terminal(cmd, BDD):
             if cmds[4] not in launchers:
                 return f"Erreur : Launcher '{cmds[3]}' non valide | Voir add launcher"
 
-            res = dico_app_cmds[cmds[0]]
+            # res = dico_app_cmds[cmds[0]]
             # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
 
             print("arg2 valide")
-            return res
+            return "a"
 
     if cmds[0] == 'print':
         return f"Disques : {', '.join(getDisques(BDD))}"
