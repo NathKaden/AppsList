@@ -186,20 +186,27 @@ def editApp(item, BDD):
 #%%
 
 def terminal(cmd, BDD):
-    arg1 = ['help', 'print', 'add', 'delete']  # Choses possibles
+    arg1 = ['help', 'print', 'add', 'delete', 'remove']  # Choses possibles
     disques = getDisques(BDD)  # Disques possibles
 
     # Si la commande est vide
-    if cmd == "":
+    if not cmd:
         return "Entrée vide | Voir help pour plus d'informations"
 
-    cmds = shlex.split(cmd)
+    try:
+        cmds = shlex.split(cmd)
+    except ValueError as e:
+        return "Erreur : commande invalide | Voir help pour plus d'informations"
+        # f"Erreur de parsing de commande : {str(e)}"
+
     print(f"Commandes : {', '.join(cmds)}")
     print(len(cmds), " Argument(s)")
 
     if cmds[0] not in arg1:
         return "Erreur : commande invalide | Voir help pour plus d'informations"
     if cmds[0] == "help":
+        if cmds[1] == "add":
+            return f'Un exemple : add app "SSD Main" "Nom app" "Microsoft Store" 42 2005'
         return f"Commandes possibles : {', '.join(arg1)}"
     if cmds[0] == 'print':
         return f"Disques : {', '.join(getDisques(BDD))}"
@@ -208,6 +215,7 @@ def terminal(cmd, BDD):
     dico_app_cmds = {
         'add': addApp,
         'delete': deleteApp,
+        'remove': deleteApp,
         'edit': editApp
     }
     launchers = [
@@ -223,28 +231,31 @@ def terminal(cmd, BDD):
     # Vérifier les arguments supplémentaires pour les commandes add, delete et edit
     if cmds[0] in dico_app_cmds:
         # for arg in cmds[1:]:
-
-        if cmds[1] and cmds[1] == "app":
-            if cmds[2] and cmds[2] not in disques:
+        if len(cmds) < 3:
+            return "Erreur : arguments insuffisants pour la commande | Voir help pour plus d'informations"
+        if len(cmds) > 7:
+            return "Erreur : trop d'arguments pour la commande | Voir help pour plus d'informations"
+        if cmds[1] == "app":
+            if cmds[2] not in disques:
                 return f"Erreur : Disque '{cmds[2]}' non valide"
+            if len(cmds) == 3:
+                return f"Erreur : préciser l'app et launcher !"
             if cmds[3] and cmds[3] in launchers:
-                return f"Erreur : Launcher '{cmds[3]}' n'est pas une app!"
+                return f"Erreur : '{cmds[3]}' est un launcher!"
+            if len(cmds) == 4:
+                return f"Erreur : préciser le launcher !"
+
             if cmds[4] and cmds[4] not in launchers:
-                return f"Erreur : Launcher '{cmds[3]}' non valide | Voir add launcher"
+                return f"Erreur : Launcher '{cmds[4]}' non valide | Voir add launcher"
 
             if cmds[2] in disques and cmds[3] not in launchers and cmds[4] in launchers:
                 return "Commande Ok"
 
             # res = dico_app_cmds[cmds[0]]
             # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
+            # `add app "SSD Main" jsp` fait crash !
 
-
-            return "c pa bon"
-        return "c pa bon"
-
-
-
-    return "Erreur : commande invalide"
+    return "Erreur : commande invalide | Voir help pour plus d'informations"
 
 
 # Parcourir chaque argument dans cmds

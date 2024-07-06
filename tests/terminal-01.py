@@ -194,7 +194,7 @@ class MainWindow(QMainWindow):
     def print_text(self):
         text = self.input.text()
         print(terminal(text, self.BDD))
-        print("terminal exit")
+        print("terminal exit code 0")
         self.input.deleteLater()  # Supprimer le champ de saisie
         self.input_open = False  # Marquer le champ de saisie comme fermé
 
