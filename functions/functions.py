@@ -149,13 +149,14 @@ def addApp(item, BDD):
 
     # with open(self.settings["path_bdd"], "r", encoding='utf-8') as file:
     #     BDD = json.load(file)
+    if not item[4]:
+        item[4] = 0
 
-    if item[3] in item and item[4] in item:
-        app = {
+    app = {
             "nom": item[2],
             "taille": item[3],
             "année": item[4]
-        }
+    }
     # BDD[disque][launcher].append(app)
 
     # with open("bdd.json", "w", encoding='utf-8') as file:
@@ -205,8 +206,9 @@ def terminal(cmd, BDD):
     if cmds[0] not in arg1:
         return "Erreur : commande invalide | Voir help pour plus d'informations"
     if cmds[0] == "help":
-        if cmds[1] == "add":
-            return f'Un exemple : add app "SSD Main" "Nom app" "Microsoft Store" 42 2005'
+        if len(cmds) > 1 and cmds[1] == "add":
+            return ('Utilisation : add app "Disque" "Nom app" "Launcher" (taille en Go) (date)\nUn exemple : add app '
+                    '"SSD Main" "Nom app" "Microsoft Store" 42 2005')
         return f"Commandes possibles : {', '.join(arg1)}"
     if cmds[0] == 'print':
         return f"Disques : {', '.join(getDisques(BDD))}"
@@ -230,7 +232,6 @@ def terminal(cmd, BDD):
 
     # Vérifier les arguments supplémentaires pour les commandes add, delete et edit
     if cmds[0] in dico_app_cmds:
-        # for arg in cmds[1:]:
         if len(cmds) < 3:
             return "Erreur : arguments insuffisants pour la commande | Voir help pour plus d'informations"
         if len(cmds) > 7:
@@ -248,12 +249,15 @@ def terminal(cmd, BDD):
             if cmds[4] and cmds[4] not in launchers:
                 return f"Erreur : Launcher '{cmds[4]}' non valide | Voir add launcher"
 
-            if cmds[2] in disques and cmds[3] not in launchers and cmds[4] in launchers:
-                return "Commande Ok"
+            if cmds[2] in disques and cmds[3] not in launchers and cmds[4] in launchers and len(cmds) >= 5:
+                item = cmds[2:]  # Récupère tous les arguments sauf les deux premiers
+                return addApp(item, BDD)
+
+            # Si pas de taille/date spécifiée ça mettra 0
+            # Si date, mais pas de taille, on met taille à 0 puis la date
 
             # res = dico_app_cmds[cmds[0]]
             # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
-            # `add app "SSD Main" jsp` fait crash !
 
     return "Erreur : commande invalide | Voir help pour plus d'informations"
 
