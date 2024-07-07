@@ -142,26 +142,43 @@ ajoute une app à la bdd
 '''
 
 
-def addApp(item, BDD):
-    # Un exemple : add "SSD Main" app "Rocket league" "Epic Games" 28 2015
-    # 28 Go et année 2015 facultatif
-    # item = [disque, launcher, app, taille?, annee?]
+def addApp(item, path_bdd):
 
-    # with open(self.settings["path_bdd"], "r", encoding='utf-8') as file:
-    #     BDD = json.load(file)
-    if not item[4]:
-        item[4] = 0
+    # item = [disque, nom, launcher, taille ?, annee ?]
+
+    disque = item[0]
+    nom = item[1]
+    launcher = item[2]
+    if len(item) > 3 and item[3]:
+        taille = int(item[3])
+    else:
+        taille = 0
+    if len(item) > 4 and item[4]:
+        annee = int(item[4])
+    else:
+        annee = 0
+
+    with open(path_bdd, "r", encoding='utf-8') as file:
+        bdd = json.load(file)
+
+    if disque not in bdd:
+        return "Erreur : Disque"
+    if launcher not in bdd[disque]:
+        return "Erreur : Launcher"
 
     app = {
-            "nom": item[2],
-            "taille": item[3],
-            "année": item[4]
+        "nom": nom,
+        "taille": taille,
+        "année": annee
     }
-    # BDD[disque][launcher].append(app)
 
-    # with open("bdd.json", "w", encoding='utf-8') as file:
-    #     json.dump(BDD, file, ensure_ascii=False, indent=4)
-    return 'add'
+    bdd[disque][launcher].append(app)
+
+    with open(path_bdd, "w", encoding='utf-8') as file:
+        json.dump(bdd, file, ensure_ascii=False, indent=4)
+    print(bdd)
+
+    return "Application ajoutée avec succès"
 
 
 #%%
@@ -186,9 +203,10 @@ def editApp(item, BDD):
 
 #%%
 
-def terminal(cmd, BDD):
+def terminal(cmd, BDD, path_bdd):
     arg1 = ['help', 'print', 'add', 'delete', 'remove']  # Choses possibles
     disques = getDisques(BDD)  # Disques possibles
+    print(BDD)
 
     # Si la commande est vide
     if not cmd:
@@ -251,7 +269,7 @@ def terminal(cmd, BDD):
 
             if cmds[2] in disques and cmds[3] not in launchers and cmds[4] in launchers and len(cmds) >= 5:
                 item = cmds[2:]  # Récupère tous les arguments sauf les deux premiers
-                return addApp(item, BDD)
+                return addApp(item, path_bdd)
 
             # Si pas de taille/date spécifiée ça mettra 0
             # Si date, mais pas de taille, on met taille à 0 puis la date

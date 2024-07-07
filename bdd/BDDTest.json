@@ -1,44 +1,44 @@
 {
-  "SSD Main": {
-    "Epic Games": [
-      {
-        "nom": "RL",
-        "taille": 26.2,
-        "année": 2015
-      }
-    ],
-    "Steam": [
-      {
-        "nom": "Ratchet",
-        "taille": 39.3,
-        "année": 2023
-      },
-      {
-        "nom": "Portal Source_Unpack",
-        "taille": 9.5,
-        "année": 2007
-      }
-    ]
-  },
-  "SSD Sam": {
-    "Battle.net": [
-      {
-        "nom": "Modern Warfare",
-        "année": 2019,
-        "taille": 150
-      }
-    ],
-    "EA": [
-      {
-        "nom": "NFS : The Run",
-        "année": 2011,
-        "taille": 15.4
-      },
-      {
-        "nom": "NFS : Payback",
-        "année": 2017,
-        "taille": 27.9
-      }
-    ]
-  }
-  }
+    "SSD Main": {
+        "Epic Games": [
+            {
+                "nom": "RL",
+                "taille": 26.2,
+                "année": 2015
+            }
+        ],
+        "Steam": [
+            {
+                "nom": "Ratchet",
+                "taille": 39.3,
+                "année": 2023
+            },
+            {
+                "nom": "Portal Source_Unpack",
+                "taille": 9.5,
+                "année": 2007
+            }
+        ]
+    },
+    "SSD Sam": {
+        "Battle.net": [
+            {
+                "nom": "Modern Warfare",
+                "année": 2019,
+                "taille": 150
+            }
+        ],
+        "EA": [
+            {
+                "nom": "NFS : The Run",
+                "année": 2011,
+                "taille": 15.4
+            },
+            {
+                "nom": "NFS : Payback",
+                "année": 2017,
+                "taille": 27.9
+            }
+        ]
+    }
+}

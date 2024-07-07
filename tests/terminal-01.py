@@ -124,7 +124,7 @@ class MainWindow(QMainWindow):
                 image_disque = "../assets/ssd.png"
             else:
                 image_disque = "../assets/hdd.png"
-            # Images à convertir en svg!
+            # Images à convertir en svg !
 
             disk_label = QLabel(f'{style}<img src="{image_disque}" width="25" height="25" style="vertical-align: middle;" /><b> {nom_disque}</b>')
             disk_label.setObjectName("disque")
@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
 
     def print_text(self):
         text = self.input.text()
-        print(terminal(text, self.BDD))
+        print(terminal(text, self.BDD, self.settings["path_bdd"]))
         print("terminal exit code 0")
         self.input.deleteLater()  # Supprimer le champ de saisie
         self.input_open = False  # Marquer le champ de saisie comme fermé
