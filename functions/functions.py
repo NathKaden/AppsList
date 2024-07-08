@@ -106,6 +106,21 @@ def getApps(BDD):
     return apps
 
 
+def getOccurApps(BDD, nom, tab=False):
+    count = 0
+    tabapps = []
+    apps = getApps(BDD)
+    for app in apps:
+        if app["nom"].lower() == nom.lower():
+            count += 1
+            if tab:
+                tabapps.append(app["nom"])
+    if tab:
+        return tabapps
+    else:
+        return count
+
+
 #%%
 '''
 Retourne le nbre de disques de la bdd
@@ -143,7 +158,6 @@ ajoute une app à la bdd
 
 
 def addApp(item, path_bdd):
-
     # item = [disque, nom, launcher, taille ?, annee ?]
 
     disque = item[0]
@@ -187,8 +201,45 @@ supr une app à la bdd
 '''
 
 
-def deleteApp(item, BDD):
-    return item
+def delApp(item, path_bdd):
+    # del app nom
+    print(item, len(item))
+    if len(item) > 1 and item[1]:
+        return "nion"
+
+    nom = item[0]
+
+    # Charger la base de données
+    with open(path_bdd, "r", encoding='utf-8') as file:
+        bdd = json.load(file)
+
+    # Trouver l'emplacement de l'app
+    location = findApp(bdd, nom)
+    if not location:
+        return "Erreur : Application non trouvée"
+
+    disque, launcher, app = location
+
+    bdd[disque][launcher].remove(app)
+
+    # Sauvegarder la BDD
+    with open(path_bdd, "w", encoding='utf-8') as file:
+        json.dump(bdd, file, ensure_ascii=False, indent=4)
+
+    return "Application supprimée avec succès"
+
+
+def findApp(BDD, app_name):
+    """
+    Trouve l'emplacement d'une application dans la base de données.
+    Retourne un tuple (disque, launcher, liste des applications) si trouvé, sinon False.
+    """
+    for disque, launchers in BDD.items():
+        for launcher, apps in launchers.items():
+            for app in apps:
+                if app["nom"].lower() == app_name.lower():
+                    return disque, launcher, app
+    return False
 
 
 #%%
@@ -204,6 +255,7 @@ def editApp(item, BDD):
 #%%
 
 def terminal(cmd, BDD, path_bdd):
+    print(getOccurApps(BDD, "Ratchet"))
     arg1 = ['help', 'print', 'add', 'delete', 'remove']  # Choses possibles
     disques = getDisques(BDD)  # Disques possibles
     print(BDD)
@@ -224,9 +276,13 @@ def terminal(cmd, BDD, path_bdd):
     if cmds[0] not in arg1:
         return "Erreur : commande invalide | Voir help pour plus d'informations"
     if cmds[0] == "help":
-        if len(cmds) > 1 and cmds[1] == "add":
-            return ('Utilisation : add app "Disque" "Nom app" "Launcher" (taille en Go) (date)\nUn exemple : add app '
+        if len(cmds) > 1:
+            if cmds[1] == "add":
+                return (
+                    'Utilisation : add app "Disque" "Nom app" "Launcher" (taille en Go) (date)\nUn exemple : add app '
                     '"SSD Main" "Nom app" "Microsoft Store" 42 2005')
+            if cmds[1] == "delete" or cmds[1] == "remove":
+                return "j'ai pas encore fait :("
         return f"Commandes possibles : {', '.join(arg1)}"
     if cmds[0] == 'print':
         return f"Disques : {', '.join(getDisques(BDD))}"
@@ -234,8 +290,8 @@ def terminal(cmd, BDD, path_bdd):
     # Dictionnaire de commandes
     dico_app_cmds = {
         'add': addApp,
-        'delete': deleteApp,
-        'remove': deleteApp,
+        'delete': delApp,
+        'remove': delApp,
         'edit': editApp
     }
     launchers = [
@@ -254,7 +310,7 @@ def terminal(cmd, BDD, path_bdd):
             return "Erreur : arguments insuffisants pour la commande | Voir help pour plus d'informations"
         if len(cmds) > 7:
             return "Erreur : trop d'arguments pour la commande | Voir help pour plus d'informations"
-        if cmds[1] == "app":
+        if cmds[0] == "add" and cmds[1] == "app":
             if cmds[2] not in disques:
                 return f"Erreur : Disque '{cmds[2]}' non valide"
             if len(cmds) == 3:
@@ -270,12 +326,24 @@ def terminal(cmd, BDD, path_bdd):
             if cmds[2] in disques and cmds[3] not in launchers and cmds[4] in launchers and len(cmds) >= 5:
                 item = cmds[2:]  # Récupère tous les arguments sauf les deux premiers
                 return addApp(item, path_bdd)
+                # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
+
+        if cmds[0] == "delete" or cmds[0] == "remove":
+            if cmds[1] == "app":
+                OccurApp = getOccurApps(BDD, cmds[2], True)
+                if len(OccurApp) > 1:
+                    return f"Errreur : préciser le launcher car {OccurApp} occurrences trouvées pour {cmds[2]}"
+                if len(OccurApp) == 1:
+                    item = [cmds[2]]
+                    return delApp(item, path_bdd)
+
+            # Un exemple : remove app "Portal 2"
+            # ou remove app "Rocket League" "Steam"
 
             # Si pas de taille/date spécifiée ça mettra 0
             # Si date, mais pas de taille, on met taille à 0 puis la date
 
             # res = dico_app_cmds[cmds[0]]
-            # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
 
     return "Erreur : commande invalide | Voir help pour plus d'informations"
 
