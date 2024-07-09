@@ -157,7 +157,7 @@ ajoute une app à la bdd
 '''
 
 
-def addApp(item, path_bdd):
+def addApp(item, path_bdd, window):
     # item = [disque, nom, launcher, taille ?, annee ?]
 
     disque = item[0]
@@ -192,6 +192,7 @@ def addApp(item, path_bdd):
         json.dump(bdd, file, ensure_ascii=False, indent=4)
     print(bdd)
 
+    window.refresh()
     return "Application ajoutée avec succès"
 
 
@@ -201,7 +202,7 @@ supr une app à la bdd
 '''
 
 
-def delApp(item, path_bdd):
+def delApp(item, path_bdd, window):
     # del app nom
     print(item, len(item))
     if len(item) > 1 and item[1]:
@@ -226,6 +227,7 @@ def delApp(item, path_bdd):
     with open(path_bdd, "w", encoding='utf-8') as file:
         json.dump(bdd, file, ensure_ascii=False, indent=4)
 
+    window.refresh()
     return "Application supprimée avec succès"
 
 
@@ -254,7 +256,7 @@ def editApp(item, BDD):
 
 #%%
 
-def terminal(cmd, BDD, path_bdd):
+def terminal(cmd, BDD, path_bdd, window):
     print(getOccurApps(BDD, "Ratchet"))
     arg1 = ['help', 'print', 'add', 'delete', 'remove']  # Choses possibles
     disques = getDisques(BDD)  # Disques possibles
@@ -325,7 +327,7 @@ def terminal(cmd, BDD, path_bdd):
 
             if cmds[2] in disques and cmds[3] not in launchers and cmds[4] in launchers and len(cmds) >= 5:
                 item = cmds[2:]  # Récupère tous les arguments sauf les deux premiers
-                return addApp(item, path_bdd)
+                return addApp(item, path_bdd, window)
                 # Un exemple : add app "SSD Main" "Rocket league" "Epic Games" 28 2015
 
         if cmds[0] == "delete" or cmds[0] == "remove":
@@ -335,7 +337,7 @@ def terminal(cmd, BDD, path_bdd):
                     return f"Errreur : préciser le launcher car {OccurApp} occurrences trouvées pour {cmds[2]}"
                 if len(OccurApp) == 1:
                     item = [cmds[2]]
-                    return delApp(item, path_bdd)
+                    return delApp(item, path_bdd, window)
 
             # Un exemple : remove app "Portal 2"
             # ou remove app "Rocket League" "Steam"

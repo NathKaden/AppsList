@@ -180,6 +180,9 @@ class MainWindow(QMainWindow):
         centralWidget.setObjectName("centralWidget")
         self.setCentralWidget(centralWidget)
 
+    def refresh(self):
+        self.__applyBDD()
+
     def open_github(self):
         webbrowser.open('https://github.com/NathKaden/AppsList')
         print("Github")
@@ -193,7 +196,7 @@ class MainWindow(QMainWindow):
 
     def print_text(self):
         text = self.input.text()
-        print(terminal(text, self.BDD, self.settings["path_bdd"]))
+        print(terminal(text, self.BDD, self.settings["path_bdd"], window))
         print("terminal exit code 0")
         self.input.deleteLater()  # Supprimer le champ de saisie
         self.input_open = False  # Marquer le champ de saisie comme fermé
