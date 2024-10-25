@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
         menuBar = QMenuBar(self)
         self.setMenuBar(menuBar)
         self.setWindowTitle("AppsList")
-        self.setWindowIcon(QIcon('./assets/icon.jpg'))
+        self.setWindowIcon(QIcon('../assets/icon.jpg'))
         self.setGeometry(400, 300, 750, 480)  # (x, y, width, height)
 
         fileMenu = QMenu('Fichier', self)
@@ -68,14 +68,10 @@ class MainWindow(QMainWindow):
         otherMenu.addAction(githubAction)
         otherMenu.addAction(creditsAction)
 
-        terminalMenu = QMenu('cmd', self)
-        terminalMenu.addAction(commandAction)
-
         menuBar.addMenu(fileMenu)
         menuBar.addMenu(editMenu)
         menuBar.addMenu(viewMenu)
         menuBar.addMenu(otherMenu)
-        menuBar.addAction(commandAction)
 
         central_layout = QVBoxLayout()
         centralWidget = QWidget()
@@ -85,7 +81,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(centralWidget)
 
     def __applyBDD(self):
-        path_settings = "./assets/settings.json"
+        path_settings = "../assets/settings.json"
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
             self.settings = json.load(fichiersettings)
         path_bdd = self.settings["path_bdd"]
@@ -119,15 +115,15 @@ class MainWindow(QMainWindow):
             disk_layout.setSpacing(0)  # Aucun espacement entre le nom du disque et les launchers
 
             # Charger le CSS depuis le fichier
-            with open("./assets/style.css", "r") as file:
+            with open("../assets/style.css", "r") as file:
                 css = file.read()
 
             style = f"<style>{css}</style>"
 
             if 'ssd' in nom_disque.lower():
-                image_disque = "./assets/ssd.png"
+                image_disque = "../assets/ssd.png"
             else:
-                image_disque = "./assets/hdd.png"
+                image_disque = "../assets/hdd.png"
             # Images à convertir en svg !
 
             disk_label = QLabel(f'{style}<img src="{image_disque}" width="25" height="25" style="vertical-align: middle;" /><b> {nom_disque}</b>')
@@ -203,7 +199,7 @@ class MainWindow(QMainWindow):
         self.input_open = False  # Marquer le champ de saisie comme fermé
 
     def __applyTheme(self):
-        with open('./assets/style.qss', 'r') as file:
+        with open('../assets/style.qss', 'r') as file:
             stylesheet = file.read()
         self.setStyleSheet(stylesheet)
 

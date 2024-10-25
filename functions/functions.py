@@ -2,7 +2,7 @@ import json
 import os
 import shlex
 
-path_settings = "../assets/settings.json"
+path_settings = "./assets/settings.json"
 
 
 def fonctiontest(a):
