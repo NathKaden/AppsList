@@ -71,3 +71,23 @@ class TestFunctions(unittest.TestCase):
 
         del_msg = terminal('delete app "Subnautica"', self.db, self.test_db_path)
         self.assertIn("Application supprimée avec succès", del_msg)
+
+        # Test deleting non-existent app
+        del_nonexistent = terminal('delete app "NonExistentGame"', self.db, self.test_db_path)
+        self.assertIn("n'a pas été trouvée dans la base de données", del_nonexistent)
+
+        # Add duplicate app to test multiple occurrences delete
+        terminal('add app "SSD Main" "DuplicateGame" "Steam" 20 2020', self.db, self.test_db_path)
+        terminal('add app "HDD Storage" "DuplicateGame" "Epic Games" 20 2020', self.db, self.test_db_path)
+        
+        # Test delete duplicate app without launcher
+        del_dup_no_launcher = terminal('delete app "DuplicateGame"', self.db, self.test_db_path)
+        self.assertIn("car plusieurs occurrences ont été trouvées", del_dup_no_launcher)
+
+        # Test delete duplicate app with wrong launcher
+        del_dup_wrong_launcher = terminal('delete app "DuplicateGame" "Nintendo"', self.db, self.test_db_path)
+        self.assertIn("n'existe pas sous le launcher 'Nintendo'", del_dup_wrong_launcher)
+
+        # Test delete duplicate app with correct launcher
+        del_dup_ok = terminal('delete app "DuplicateGame" "Steam"', self.db, self.test_db_path)
+        self.assertIn("Application supprimée avec succès", del_dup_ok)

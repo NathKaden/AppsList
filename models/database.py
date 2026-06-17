@@ -97,3 +97,24 @@ class Database:
         launcher.apps.remove(app)
         self.save()
         return "Application supprimée avec succès"
+
+    def get_app_launchers(self, app_name):
+        launchers = []
+        for disk in self.disks.values():
+            for launcher_name, launcher in disk.launchers.items():
+                for app in launcher.apps:
+                    if app.name.lower() == app_name.lower():
+                        if launcher_name not in launchers:
+                            launchers.append(launcher_name)
+        return launchers
+
+    def delete_app_from_launcher(self, app_name, launcher_name):
+        for disk in self.disks.values():
+            for l_name, launcher in disk.launchers.items():
+                if l_name.lower() == launcher_name.lower():
+                    for app in launcher.apps:
+                        if app.name.lower() == app_name.lower():
+                            launcher.apps.remove(app)
+                            self.save()
+                            return "Application supprimée avec succès"
+        return "Erreur : Application non trouvée"

@@ -125,11 +125,23 @@ def terminal(cmd, db, path_bdd):
         if len(cmds) < 3:
             return "Erreur : arguments insuffisants pour la commande | Voir help pour plus d'informations"
         if cmds[1] == "app":
-            occur = db.get_occurrences_count(cmds[2], return_list=True)
-            if len(occur) > 1:
-                return f"Errreur : préciser le launcher car {occur} occurrences trouvées pour {cmds[2]}"
-            if len(occur) == 1:
+            occur_launchers = db.get_app_launchers(cmds[2])
+            if len(occur_launchers) > 1:
+                if len(cmds) >= 4:
+                    target_launcher = cmds[3]
+                    if any(l.lower() == target_launcher.lower() for l in occur_launchers):
+                        return db.delete_app_from_launcher(cmds[2], target_launcher)
+                    else:
+                        return f"Erreur : l'application '{cmds[2]}' n'existe pas sous le launcher '{target_launcher}'. Occurrences trouvées dans : {', '.join(occur_launchers)}"
+                return f"Erreur : préciser le launcher (ex: delete app \"{cmds[2]}\" \"Launcher\") car plusieurs occurrences ont été trouvées dans : {', '.join(occur_launchers)}"
+            if len(occur_launchers) == 1:
+                # If they specified a launcher anyway, verify it matches
+                if len(cmds) >= 4:
+                    target_launcher = cmds[3]
+                    if occur_launchers[0].lower() != target_launcher.lower():
+                        return f"Erreur : l'application '{cmds[2]}' n'existe pas sous le launcher '{target_launcher}'. Occurrences trouvées dans : {occur_launchers[0]}"
                 return db.delete_app(cmds[2])
+            return f"Erreur : l'application '{cmds[2]}' n'a pas été trouvée dans la base de données."
 
     return "Erreur : commande invalide | Voir help pour plus d'informations"
 
