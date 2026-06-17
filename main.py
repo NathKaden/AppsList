@@ -68,6 +68,7 @@ class MainWindow(QMainWindow):
             on_new=self.open_new_bdd_input,
             on_open=self.open_bdd_file,
             on_refresh=self.refresh,
+            on_search=self.rechercher_jeu,
             settings_button=self.settings_button
         )
         self.setMenuBar(menuBar)
@@ -149,24 +150,29 @@ class MainWindow(QMainWindow):
         sep.setStyleSheet("background-color: #3b3b54;")
         side_layout.addWidget(sep)
         
-        form_layout = QFormLayout()
-        form_layout.setSpacing(8)
-        
         self.side_name_input = QLineEdit()
         self.side_year_input = QSpinBox()
         self.side_year_input.setRange(1900, 2100)
+        self.side_year_input.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
         
         self.side_size_input = QDoubleSpinBox()
         self.side_size_input.setRange(0.0, 10000.0)
         self.side_size_input.setDecimals(1)
         self.side_size_input.setSuffix(" Go")
+        self.side_size_input.setButtonSymbols(QDoubleSpinBox.ButtonSymbols.NoButtons)
         
-        form_layout.addRow(QLabel("Nom :"), self.side_name_input)
-        form_layout.addRow(QLabel("Année :"), self.side_year_input)
-        form_layout.addRow(QLabel("Taille :"), self.side_size_input)
+        side_layout.addWidget(QLabel("Nom :"))
+        side_layout.addWidget(self.side_name_input)
+        side_layout.addSpacing(6)
         
-        side_layout.addLayout(form_layout)
-        side_layout.addSpacing(10)
+        side_layout.addWidget(QLabel("Année :"))
+        side_layout.addWidget(self.side_year_input)
+        side_layout.addSpacing(6)
+        
+        side_layout.addWidget(QLabel("Taille :"))
+        side_layout.addWidget(self.side_size_input)
+        
+        side_layout.addStretch(1)
         
         self.side_save_btn = QPushButton("Enregistrer")
         self.side_save_btn.setObjectName("sideSaveBtn")
@@ -184,8 +190,6 @@ class MainWindow(QMainWindow):
         self.side_close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.side_close_btn.clicked.connect(self.side_panel.hide)
         side_layout.addWidget(self.side_close_btn)
-        
-        side_layout.addStretch()
 
     def __applyBDD(self):
         # Barre de statut
@@ -457,6 +461,54 @@ class MainWindow(QMainWindow):
     def on_settings_cancelled(self):
         self.stacked_widget.setCurrentIndex(0)
         self.settings_button.setIcon(self.settings_icon)
+
+    def rechercher_jeu(self):
+        if self.stacked_widget.currentIndex() != 0:
+            return
+        from PyQt6.QtWidgets import QInputDialog
+        from ui.components import AppLabel
+        from PyQt6.QtCore import QPointF
+
+        game_name, ok = QInputDialog.getText(
+            self,
+            "Rechercher un jeu",
+            "Entrez le nom du jeu à rechercher :"
+        )
+        if not ok or not game_name.strip():
+            return
+
+        game_name = game_name.strip()
+        app_labels = self.canvas_container.findChildren(AppLabel)
+        
+        # 1. Exact match (case insensitive)
+        target = None
+        for app_label in app_labels:
+            if app_label.app.name.lower() == game_name.lower():
+                target = app_label
+                break
+                
+        # 2. Partial match (case insensitive) if exact match not found
+        if not target:
+            for app_label in app_labels:
+                if game_name.lower() in app_label.app.name.lower():
+                    target = app_label
+                    break
+
+        if target:
+            # Center camera on the game
+            local_pos = target.rect().center()
+            container_pos = target.mapTo(self.canvas_container, local_pos)
+            scene_pos = self.proxy.mapToScene(QPointF(container_pos))
+            self.canvas_view.centerOn(scene_pos)
+            
+            # Show the details panel of the found app
+            self.show_app_details(target.app, target.launcher)
+        else:
+            QMessageBox.information(
+                self,
+                "Jeu non trouvé",
+                f"Le jeu '{game_name}' n'a pas été trouvé."
+            )
 
     def _on_terminal_close(self):
         self.input_open = False

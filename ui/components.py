@@ -2,7 +2,7 @@ import os
 import json
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu, QPushButton, QFileDialog, QColorDialog, QScrollArea, QGraphicsView, QGraphicsScene, QApplication, QMessageBox, QDialog, QFormLayout, QSpinBox, QDoubleSpinBox, QDialogButtonBox
 from PyQt6.QtCore import Qt, QPointF, QSize
-from PyQt6.QtGui import QAction, QPixmap, QColor, QPainter, QBrush, QPen, QIcon, QPolygonF
+from PyQt6.QtGui import QAction, QPixmap, QColor, QPainter, QBrush, QPen, QIcon, QPolygonF, QCursor, QKeySequence
 from functions.functions import terminal
 
 class LogoLabel(QWidget):
@@ -44,27 +44,7 @@ class AppLabel(QLabel):
             }
         """)
 
-    def get_main_window(self):
-        if self.main_window is not None:
-            return self.main_window
-        if hasattr(self, 'refresh_callback') and hasattr(self.refresh_callback, '__self__'):
-            return self.refresh_callback.__self__
-        return self.window()
 
-    def mousePressEvent(self, event):
-        if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
-            main_win = self.get_main_window()
-            if hasattr(main_win, 'show_app_details'):
-                main_win.show_app_details(self.app, self.launcher)
-            event.accept()
-        else:
-            super().mousePressEvent(event)
-
-    def contextMenuEvent(self, event):
-        main_win = self.get_main_window()
-        if hasattr(main_win, 'show_app_details'):
-            main_win.show_app_details(self.app, self.launcher)
-        event.accept()
 
 
 class DiskWidget(QWidget):
@@ -145,6 +125,8 @@ class DiskWidget(QWidget):
         launchers_layout.setSpacing(0)
 
         for launcher_name, launcher in self.disk.launchers.items():
+            if not launcher.apps:
+                continue
             launcher_layout = QHBoxLayout()
             launcher_layout.setContentsMargins(0, 0, 0, 0)
             launcher_layout.setSpacing(15)
@@ -280,7 +262,7 @@ class NewBddInputWidget(QLineEdit):
         self.deleteLater()
 
 
-def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_refresh, settings_button=None):
+def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_refresh, on_search=None, settings_button=None):
     menuBar = QMenuBar(parent)
     menuBar.setObjectName("mainMenuBar")
     menuBar.setMouseTracking(True)
@@ -303,36 +285,29 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_
 
     editMenu = QMenu('Editer', parent)
     editMenu.setCursor(Qt.CursorShape.PointingHandCursor)
-    cutAction = QAction('Couper', parent)
-    copyAction = QAction('Copier', parent)
-    pasteAction = QAction('Coller', parent)
-    editMenu.addAction(cutAction)
-    editMenu.addAction(copyAction)
-    editMenu.addAction(pasteAction)
+    searchAction = QAction('Rechercher', parent)
+    searchAction.setShortcut(QKeySequence("Ctrl+F"))
+    if on_search:
+        searchAction.triggered.connect(on_search)
+    editMenu.addAction(searchAction)
 
     viewMenu = QMenu('Vue', parent)
     viewMenu.setCursor(Qt.CursorShape.PointingHandCursor)
     listAction = QAction('Liste', parent)
     sortAction = QAction('Trier', parent)
-    themeAction = QAction('Thèmes', parent)
-    languageAction = QAction('Langue', parent)
     viewMenu.addAction(listAction)
     viewMenu.addAction(sortAction)
-    viewMenu.addAction(themeAction)
-    viewMenu.addAction(languageAction)
 
     otherMenu = QMenu('Autres', parent)
     otherMenu.setCursor(Qt.CursorShape.PointingHandCursor)
     commandAction = QAction('Terminal', parent)
-    commandAction.setStatusTip('  Ouvrir le Terminal')
+    commandAction.setStatusTip('  Ouvrir le Terminal')
     commandAction.triggered.connect(on_terminal)
     githubAction = QAction('GitHub', parent)
-    githubAction.setStatusTip('  Ouvrir le GitHub')
+    githubAction.setStatusTip('  Ouvrir le GitHub')
     githubAction.triggered.connect(on_github)
-    creditsAction = QAction('Crédits', parent)
     otherMenu.addAction(commandAction)
     otherMenu.addAction(githubAction)
-    otherMenu.addAction(creditsAction)
 
     menuBar.addMenu(fileMenu)
     menuBar.addMenu(editMenu)
@@ -426,25 +401,29 @@ class SettingsWidget(QWidget):
         title_label.setObjectName("settingsTitle")
         main_layout.addWidget(title_label)
 
-        # Separator line
-        sep = QWidget()
-        sep.setFixedHeight(2)
-        sep.setStyleSheet("background-color: #3b3b54;")
-        main_layout.addWidget(sep)
-
         # 1. BDD Path Section
         path_label = QLabel("<b>Base de données</b> (fichier JSON) :")
         main_layout.addWidget(path_label)
 
         path_row = QHBoxLayout()
         self.path_input = QLineEdit(self.current_path)
+        self.path_input.setFixedHeight(30)
         self.path_input.setPlaceholderText("Sélectionnez le fichier JSON de la BDD...")
         browse_btn = QPushButton("Parcourir...")
+        browse_btn.setFixedHeight(30)
         browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         browse_btn.clicked.connect(self.browse_db_path)
         path_row.addWidget(self.path_input)
         path_row.addWidget(browse_btn)
         main_layout.addLayout(path_row)
+
+        # Separator line before colors
+        main_layout.addSpacing(10)
+        sep = QWidget()
+        sep.setFixedHeight(2)
+        sep.setStyleSheet("background-color: #3b3b54;")
+        main_layout.addWidget(sep)
+        main_layout.addSpacing(10)
 
         # 2. Colors Section
         colors_label = QLabel("<b>Couleurs des bordures de disques :</b>")
@@ -485,6 +464,8 @@ class SettingsWidget(QWidget):
         
         actions_row.addWidget(self.cancel_btn)
         actions_row.addWidget(self.save_btn)
+        
+        main_layout.addStretch(1)
         main_layout.addLayout(actions_row)
 
         # Initial colors list render
@@ -670,6 +651,10 @@ class CanvasView(QGraphicsView):
         self.zoom_maximum = 3.0  # Zoomer jusqu'à 300%
         self.is_first_show = True
 
+        # --- CONFIGURATION DU CLIC DROIT ---
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.afficher_menu_contextuel)
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         if self.is_first_show:
@@ -702,3 +687,35 @@ class CanvasView(QGraphicsView):
         # 4. Appliquer le zoom uniquement si on reste dans les limites
         if self.zoom_minimum <= zoom_futur <= self.zoom_maximum:
             self.scale(facteur_potentiel, facteur_potentiel)
+
+    def afficher_menu_contextuel(self, position_clic):
+        pos_scene = self.mapToScene(position_clic)
+        item = self.scene().itemAt(pos_scene, self.transform())
+        
+        main_win = self.window()
+        if hasattr(main_win, 'proxy') and item == main_win.proxy:
+            local_pos = main_win.proxy.mapFromScene(pos_scene)
+            child = main_win.proxy.widget().childAt(local_pos.toPoint())
+            
+            app_label = None
+            while child:
+                if isinstance(child, AppLabel):
+                    app_label = child
+                    break
+                child = child.parent()
+                
+            if app_label:
+                menu = QMenu(self)
+                menu.setCursor(Qt.CursorShape.PointingHandCursor)
+                modify_action = menu.addAction("Modifier")
+                delete_action = menu.addAction("Supprimer")
+                
+                action = menu.exec(self.mapToGlobal(position_clic))
+                app_label.update()
+                
+                if action == modify_action:
+                    main_win.show_app_details(app_label.app, app_label.launcher)
+                elif action == delete_action:
+                    main_win.selected_app = app_label.app
+                    main_win.selected_launcher = app_label.launcher
+                    main_win.delete_selected_app()

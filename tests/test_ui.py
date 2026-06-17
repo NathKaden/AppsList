@@ -313,9 +313,93 @@ class TestMainWindowAppDetails(unittest.TestCase):
         self.assertTrue(self.win.side_panel.isHidden())
         self.assertEqual(len(launcher.apps), 0)
 
-    def test_app_label_resolves_main_window(self):
+
+
+    @patch('PyQt6.QtWidgets.QMenu.exec')
+    def test_app_label_context_menu_modify(self, mock_exec):
         from ui.components import AppLabel
-        app_labels = self.win.canvas_container.findChildren(AppLabel)
-        self.assertTrue(len(app_labels) > 0)
-        for label in app_labels:
-            self.assertEqual(label.get_main_window(), self.win)
+        from PyQt6.QtGui import QContextMenuEvent
+        from PyQt6.QtCore import QPoint
+        import PyQt6.QtWidgets
+        
+        app_label = self.win.canvas_container.findChildren(AppLabel)[0]
+        
+        actions = []
+        original_add_action = PyQt6.QtWidgets.QMenu.addAction
+        
+        def mock_add_action(menu_self, text):
+            act = original_add_action(menu_self, text)
+            actions.append(act)
+            return act
+            
+        with patch('PyQt6.QtWidgets.QMenu.addAction', mock_add_action):
+            def exec_side_effect(*args, **kwargs):
+                return actions[0]  # Modifier action
+            mock_exec.side_effect = exec_side_effect
+            
+            from PyQt6.QtCore import QPointF
+            local_pos = app_label.mapTo(self.win.canvas_container, QPoint(app_label.width() // 2, app_label.height() // 2))
+            scene_pos = self.win.proxy.mapToScene(QPointF(local_pos))
+            viewport_pos = self.win.canvas_view.mapFromScene(scene_pos)
+            
+            self.win.canvas_view.afficher_menu_contextuel(viewport_pos)
+            
+            self.assertFalse(self.win.side_panel.isHidden())
+            self.assertEqual(self.win.selected_app, app_label.app)
+
+    @patch('PyQt6.QtWidgets.QMenu.exec')
+    @patch('PyQt6.QtWidgets.QMessageBox.question')
+    def test_app_label_context_menu_delete(self, mock_question, mock_exec):
+        from ui.components import AppLabel
+        from PyQt6.QtGui import QContextMenuEvent
+        from PyQt6.QtCore import QPoint
+        import PyQt6.QtWidgets
+        
+        mock_question.return_value = QMessageBox.StandardButton.Yes
+        app_label = self.win.canvas_container.findChildren(AppLabel)[0]
+        
+        actions = []
+        original_add_action = PyQt6.QtWidgets.QMenu.addAction
+        
+        def mock_add_action(menu_self, text):
+            act = original_add_action(menu_self, text)
+            actions.append(act)
+            return act
+            
+        with patch('PyQt6.QtWidgets.QMenu.addAction', mock_add_action):
+            def exec_side_effect(*args, **kwargs):
+                return actions[1]  # Supprimer action
+            mock_exec.side_effect = exec_side_effect
+            
+            initial_count = len(app_label.launcher.apps)
+            
+            from PyQt6.QtCore import QPointF
+            local_pos = app_label.mapTo(self.win.canvas_container, QPoint(app_label.width() // 2, app_label.height() // 2))
+            scene_pos = self.win.proxy.mapToScene(QPointF(local_pos))
+            viewport_pos = self.win.canvas_view.mapFromScene(scene_pos)
+            
+            self.win.canvas_view.afficher_menu_contextuel(viewport_pos)
+            
+            self.assertEqual(len(app_label.launcher.apps), initial_count - 1)
+
+    @patch('PyQt6.QtWidgets.QInputDialog.getText')
+    def test_rechercher_jeu_success(self, mock_get_text):
+        mock_get_text.return_value = ("Celeste", True)
+        self.assertTrue(self.win.side_panel.isHidden())
+        self.win.rechercher_jeu()
+        self.assertFalse(self.win.side_panel.isHidden())
+        self.assertEqual(self.win.selected_app.name, "Celeste")
+
+    @patch('PyQt6.QtWidgets.QMessageBox.information')
+    @patch('PyQt6.QtWidgets.QInputDialog.getText')
+    def test_rechercher_jeu_not_found(self, mock_get_text, mock_info):
+        mock_get_text.return_value = ("NonExistentGame", True)
+        self.win.rechercher_jeu()
+        mock_info.assert_called_once()
+        self.assertTrue(self.win.side_panel.isHidden())
+
+    @patch('PyQt6.QtWidgets.QInputDialog.getText')
+    def test_rechercher_jeu_on_settings_page(self, mock_get_text):
+        self.win.stacked_widget.setCurrentIndex(1)
+        self.win.rechercher_jeu()
+        mock_get_text.assert_not_called()
