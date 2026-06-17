@@ -44,10 +44,17 @@ class AppLabel(QLabel):
         """)
 
     def mousePressEvent(self, event):
-        # Open side panel on click
+        if event.button() == Qt.MouseButton.LeftButton:
+            main_win = self.window()
+            if hasattr(main_win, 'show_app_details'):
+                main_win.show_app_details(self.app, self.launcher)
+        super().mousePressEvent(event)
+
+    def contextMenuEvent(self, event):
         main_win = self.window()
         if hasattr(main_win, 'show_app_details'):
             main_win.show_app_details(self.app, self.launcher)
+        event.accept()
 
 
 class DiskWidget(QWidget):
