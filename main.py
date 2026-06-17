@@ -10,7 +10,7 @@ from PyQt6.QtCore import pyqtSignal, QEvent, Qt, QSize
 # Import des fonctions nécessaires, des modèles et des composants UI
 from functions.functions import getDisques, getNbApps, get_color
 from models import Database
-from ui.components import DiskWidget, TerminalWidget, build_menu_bar, SettingsWidget, create_gear_icon, create_home_icon, CanvasView
+from ui.components import DiskWidget, TerminalWidget, build_menu_bar, SettingsWidget, create_gear_icon, create_home_icon, CanvasView, NewBddInputWidget
 
 class MainWindow(QMainWindow):
     changedToDark = pyqtSignal(bool)
@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
             on_exit=self.close,
             on_terminal=self.open_terminal,
             on_github=self.open_github,
+            on_new=self.open_new_bdd_input,
             settings_button=self.settings_button
         )
         self.setMenuBar(menuBar)
@@ -180,6 +181,36 @@ class MainWindow(QMainWindow):
             self.main_page_widget.layout().addWidget(self.input)
             self.input.setFocus()
             self.input_open = True  # Marquer le champ de saisie comme ouvert
+
+    def open_new_bdd_input(self):
+        if not self.input_open:
+            self.input = NewBddInputWidget(
+                assetsdir=self.assetsdir,
+                on_created_callback=self.on_new_bdd_created,
+                on_close_callback=self._on_terminal_close,
+                parent=self
+            )
+            self.main_page_widget.layout().addWidget(self.input)
+            self.input.setFocus()
+            self.input_open = True
+
+    def on_new_bdd_created(self, new_bdd_path):
+        # Reload settings
+        path_settings = self.assetsdir + "settings.json"
+        with open(path_settings, "r", encoding='utf-8') as fichiersettings:
+            self.settings = json.load(fichiersettings)
+            
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if not os.path.isabs(self.settings["path_bdd"]):
+            self.settings["path_bdd"] = os.path.abspath(os.path.join(current_dir, self.settings["path_bdd"]))
+            
+        self.db = Database(self.settings["path_bdd"])
+        self.db.load()
+        
+        # Reset is_first_show flag in CanvasView so that it centers the new BDD list correctly
+        self.canvas_view.is_first_show = True
+        
+        self.refresh()
 
     def toggle_settings(self):
         if self.stacked_widget.currentIndex() == 0:

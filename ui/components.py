@@ -170,7 +170,61 @@ class TerminalWidget(QLineEdit):
         self.deleteLater()
 
 
-def build_menu_bar(parent, on_exit, on_terminal, on_github, settings_button=None):
+class NewBddInputWidget(QLineEdit):
+    def __init__(self, assetsdir, on_created_callback, on_close_callback, parent=None):
+        super().__init__(parent)
+        self.assetsdir = assetsdir
+        self.on_created = on_created_callback
+        self.on_close = on_close_callback
+        self.setPlaceholderText("Nom du disque")
+        self.returnPressed.connect(self.create_new_bdd)
+
+    def create_new_bdd(self):
+        disk_name = self.text().strip()
+        if not disk_name:
+            self.on_close()
+            self.deleteLater()
+            return
+            
+        safe_filename = "".join(c for c in disk_name if c.isalnum() or c in (' ', '_', '-')).strip()
+        if not safe_filename:
+            safe_filename = "NewBDD"
+            
+        # Get project dir relative to assets directory
+        project_dir = os.path.dirname(self.assetsdir.rstrip('/'))
+        bdd_dir = os.path.join(project_dir, "bdd").replace("\\", "/")
+        os.makedirs(bdd_dir, exist_ok=True)
+        
+        new_bdd_path = os.path.join(bdd_dir, f"{safe_filename}.json").replace("\\", "/")
+        
+        counter = 1
+        base_path = os.path.join(bdd_dir, safe_filename).replace("\\", "/")
+        while os.path.exists(new_bdd_path):
+            new_bdd_path = f"{base_path}_{counter}.json"
+            counter += 1
+            
+        initial_data = {
+            disk_name: {}
+        }
+        with open(new_bdd_path, "w", encoding="utf-8") as f:
+            json.dump(initial_data, f, ensure_ascii=False, indent=4)
+            
+        settings_path = self.assetsdir + "settings.json"
+        with open(settings_path, "r", encoding="utf-8") as f:
+            settings_data = json.load(f)
+            
+        rel_path = "bdd/" + os.path.basename(new_bdd_path)
+        settings_data["path_bdd"] = rel_path
+        
+        with open(settings_path, "w", encoding="utf-8") as f:
+            json.dump(settings_data, f, indent=2, ensure_ascii=False)
+            
+        self.on_created(new_bdd_path)
+        self.on_close()
+        self.deleteLater()
+
+
+def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, settings_button=None):
     menuBar = QMenuBar(parent)
     menuBar.setObjectName("mainMenuBar")
     menuBar.setMouseTracking(True)
@@ -179,6 +233,7 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github, settings_button=None
     fileMenu = QMenu('Fichier', parent)
     fileMenu.setCursor(Qt.CursorShape.PointingHandCursor)
     newAction = QAction('Nouveau', parent)
+    newAction.triggered.connect(on_new)
     openAction = QAction('Ouvrir', parent)
     saveAction = QAction('Enregistrer', parent)
     exitAction = QAction('Quitter', parent)
