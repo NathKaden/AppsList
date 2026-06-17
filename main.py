@@ -67,6 +67,7 @@ class MainWindow(QMainWindow):
             on_github=self.open_github,
             on_new=self.open_new_bdd_input,
             on_open=self.open_bdd_file,
+            on_refresh=self.refresh,
             settings_button=self.settings_button
         )
         self.setMenuBar(menuBar)

@@ -231,7 +231,7 @@ class NewBddInputWidget(QLineEdit):
         self.deleteLater()
 
 
-def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, settings_button=None):
+def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_refresh, settings_button=None):
     menuBar = QMenuBar(parent)
     menuBar.setObjectName("mainMenuBar")
     menuBar.setMouseTracking(True)
@@ -243,12 +243,13 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, set
     newAction.triggered.connect(on_new)
     openAction = QAction('Ouvrir', parent)
     openAction.triggered.connect(on_open)
-    saveAction = QAction('Enregistrer', parent)
+    refreshAction = QAction('Actualiser', parent)
+    refreshAction.triggered.connect(on_refresh)
     exitAction = QAction('Quitter', parent)
     exitAction.triggered.connect(on_exit)
     fileMenu.addAction(newAction)
     fileMenu.addAction(openAction)
-    fileMenu.addAction(saveAction)
+    fileMenu.addAction(refreshAction)
     fileMenu.addAction(exitAction)
 
     editMenu = QMenu('Editer', parent)
