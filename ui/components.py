@@ -314,8 +314,8 @@ class SettingsWidget(QWidget):
 
         self.setObjectName("settingsWidget")
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(15, 10, 15, 10)
+        main_layout.setSpacing(8)
 
         # Title
         title_label = QLabel("Paramètres de l'Application")
@@ -329,11 +329,7 @@ class SettingsWidget(QWidget):
         main_layout.addWidget(sep)
 
         # 1. BDD Path Section
-        path_header = QLabel("Base de Données")
-        path_header.setObjectName("sectionHeader")
-        main_layout.addWidget(path_header)
-
-        path_label = QLabel("Chemin du fichier JSON de la base de données :")
+        path_label = QLabel("<b>Base de données</b> (fichier JSON) :")
         main_layout.addWidget(path_label)
 
         path_row = QHBoxLayout()
@@ -346,37 +342,28 @@ class SettingsWidget(QWidget):
         path_row.addWidget(browse_btn)
         main_layout.addLayout(path_row)
 
-        # Spacer
-        main_layout.addSpacing(10)
-
         # 2. Colors Section
-        colors_header = QLabel("Couleurs des Disques")
-        colors_header.setObjectName("sectionHeader")
-        main_layout.addWidget(colors_header)
+        colors_label = QLabel("<b>Couleurs des bordures de disques :</b>")
+        main_layout.addWidget(colors_label)
 
-        colors_desc = QLabel("Liste des couleurs utilisées pour colorer les bordures des disques :")
-        main_layout.addWidget(colors_desc)
-
-        # Colors Scroll Area
+        # Colors Scroll Area with fixed height to prevent window growth
         self.scroll_area = QScrollArea()
+        self.scroll_area.setFixedHeight(120)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_widget = QWidget()
         self.scroll_widget.setStyleSheet("background-color: #211f22;")
         self.colors_layout = QVBoxLayout(self.scroll_widget)
-        self.colors_layout.setContentsMargins(10, 10, 10, 10)
-        self.colors_layout.setSpacing(5)
+        self.colors_layout.setContentsMargins(5, 5, 5, 5)
+        self.colors_layout.setSpacing(4)
         
         self.scroll_area.setWidget(self.scroll_widget)
-        main_layout.addWidget(self.scroll_area, 1) # Set stretch factor to let colors list expand
+        main_layout.addWidget(self.scroll_area)
 
         # Add Color Button
         add_color_btn = QPushButton("Ajouter une couleur")
         add_color_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_color_btn.clicked.connect(self.add_color)
         main_layout.addWidget(add_color_btn)
-
-        # Spacer
-        main_layout.addSpacing(10)
 
         # 3. Save / Cancel Buttons Row
         actions_row = QHBoxLayout()
