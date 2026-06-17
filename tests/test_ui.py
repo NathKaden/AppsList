@@ -203,6 +203,7 @@ class TestMainWindowOpenBdd(unittest.TestCase):
         win.open_bdd_file()
         
         self.assertEqual(win.db.filepath.replace("\\", "/"), target_file)
+        self.assertEqual(win.stacked_widget.currentIndex(), 0)
         
         with open(self.settings_path, "r", encoding="utf-8") as f:
             settings = json.load(f)
@@ -225,5 +226,6 @@ class TestMainWindowOpenBdd(unittest.TestCase):
         win.on_new_bdd_created("bdd/BDD_new_test.json")
         
         self.assertEqual(win.settings_widget.path_input.text(), "bdd/BDD_new_test.json")
+        self.assertEqual(win.stacked_widget.currentIndex(), 0)
         
         win.deleteLater()

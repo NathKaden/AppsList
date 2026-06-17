@@ -163,6 +163,9 @@ class MainWindow(QMainWindow):
             )
             self.stacked_widget.addWidget(self.settings_widget)
 
+        self.stacked_widget.setCurrentIndex(0)
+        self.settings_button.setIcon(self.settings_icon)
+
     def refresh(self):
         self.db.load()
         self.__applyBDD()
