@@ -121,6 +121,7 @@ class MainWindow(QMainWindow):
         
         # Enforce container sizing and bound displacement/panning
         self.canvas_container.setMinimumWidth(730)
+        self.canvas_container.setMinimumHeight(410)
         self.canvas_container.adjustSize()
         bounds = self.scene.itemsBoundingRect()
         margin_w = bounds.width() * 0.5

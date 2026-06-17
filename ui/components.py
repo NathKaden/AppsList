@@ -5,6 +5,22 @@ from PyQt6.QtCore import Qt, QPointF, QSize
 from PyQt6.QtGui import QAction, QPixmap, QColor, QPainter, QBrush, QPen, QIcon, QPolygonF
 from functions.functions import terminal
 
+class LogoLabel(QWidget):
+    def __init__(self, image_path, target_w, target_h, parent=None):
+        super().__init__(parent)
+        self.pix = QPixmap(image_path)
+        self.target_w = target_w
+        self.target_h = target_h
+        self.setFixedSize(target_w, target_h)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.drawPixmap(self.rect(), self.pix)
+
+
 class DiskWidget(QWidget):
     def __init__(self, disk, index, assetsdir, get_color, launchers_config=None, parent=None):
         super().__init__(parent)
@@ -49,21 +65,7 @@ class DiskWidget(QWidget):
         disk_top_row_layout.addStretch()
         
         if os.path.exists(image_disque):
-            pixmap = QPixmap(image_disque)
-            app = QApplication.instance()
-            dpr = app.primaryScreen().devicePixelRatio() if app else self.devicePixelRatioF()
-            target_w = int(25 * dpr)
-            target_h = int(25 * dpr)
-            scaled_pixmap = pixmap.scaled(
-                target_w, target_h,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            scaled_pixmap.setDevicePixelRatio(dpr)
-            
-            disk_logo_label = QLabel()
-            disk_logo_label.setPixmap(scaled_pixmap)
-            disk_logo_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+            disk_logo_label = LogoLabel(image_disque, 25, 25, self)
             disk_top_row_layout.addWidget(disk_logo_label)
 
         disk_text_label = QLabel(f'<b>{self.disk.name}</b>')
@@ -121,20 +123,7 @@ class DiskWidget(QWidget):
             launcher_top_row_layout.setSpacing(5)
             
             if image_path and os.path.exists(image_path):
-                pixmap = QPixmap(image_path)
-                app = QApplication.instance()
-                dpr = app.primaryScreen().devicePixelRatio() if app else self.devicePixelRatioF()
-                target_w = int(20 * dpr)
-                target_h = int(20 * dpr)
-                scaled_pixmap = pixmap.scaled(
-                    target_w, target_h, 
-                    Qt.AspectRatioMode.KeepAspectRatio, 
-                    Qt.TransformationMode.SmoothTransformation
-                )
-                scaled_pixmap.setDevicePixelRatio(dpr)
-                logo_label = QLabel()
-                logo_label.setPixmap(scaled_pixmap)
-                logo_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+                logo_label = LogoLabel(image_path, 20, 20, self)
                 launcher_top_row_layout.addWidget(logo_label)
                 
             text_label = QLabel(f'<b>{launcher_name}</b>')
