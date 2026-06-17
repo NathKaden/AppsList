@@ -4,13 +4,13 @@ import json
 import webbrowser
 
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton
+from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton, QGraphicsScene
 from PyQt6.QtCore import pyqtSignal, QEvent, Qt, QSize
 
 # Import des fonctions nécessaires, des modèles et des composants UI
 from functions.functions import getDisques, getNbApps, get_color
 from models import Database
-from ui.components import DiskWidget, TerminalWidget, build_menu_bar, SettingsWidget, create_gear_icon, create_home_icon
+from ui.components import DiskWidget, TerminalWidget, build_menu_bar, SettingsWidget, create_gear_icon, create_home_icon, CanvasView
 
 class MainWindow(QMainWindow):
     changedToDark = pyqtSignal(bool)
@@ -99,15 +99,48 @@ class MainWindow(QMainWindow):
         statusbar.addPermanentWidget(right_label)
         self.setStatusBar(statusbar)
 
-        # Widget central (uses components.py for clean rendering)
-        central_layout = QVBoxLayout()
+        # Create canvas container for DiskWidgets vertical layout
+        self.canvas_container = QWidget()
+        self.canvas_container.setObjectName("canvasContainer")
+        self.canvas_container.setStyleSheet("background-color: transparent;")
+        
+        central_layout = QVBoxLayout(self.canvas_container)
+        central_layout.setContentsMargins(10, 10, 10, 10)
+        central_layout.setSpacing(15)
 
         for index, disk in enumerate(self.db.disks.values()):
             disk_widget = DiskWidget(disk, index, self.assetsdir, get_color, self.settings.get("launchers", {}))
             central_layout.addWidget(disk_widget)
 
+        # Initialize QGraphicsScene and add canvas_container to it
+        self.scene = QGraphicsScene(self)
+        self.proxy = self.scene.addWidget(self.canvas_container)
+
+        # Initialize zoomable & pannable QGraphicsView (CanvasView)
+        self.canvas_view = CanvasView(self.scene, self)
+        
+        # Enforce container sizing and bound displacement/panning
+        self.canvas_container.adjustSize()
+        bounds = self.scene.itemsBoundingRect()
+        margin_w = bounds.width() * 0.5
+        margin_h = bounds.height() * 0.5
+        self.scene.setSceneRect(
+            bounds.left() - margin_w,
+            bounds.top() - margin_h,
+            bounds.width() + 2 * margin_w,
+            bounds.height() + 2 * margin_h
+        )
+        
+        # Center initially on the content
+        self.canvas_view.centerOn(bounds.center())
+
+        # Main page layout wrapping the QGraphicsView
+        main_page_layout = QVBoxLayout()
+        main_page_layout.setContentsMargins(0, 0, 0, 0)
+        main_page_layout.addWidget(self.canvas_view)
+
         self.main_page_widget = QWidget()
-        self.main_page_widget.setLayout(central_layout)
+        self.main_page_widget.setLayout(main_page_layout)
         self.main_page_widget.setObjectName("mainPageWidget")
 
         if self.stacked_widget.count() > 0:
