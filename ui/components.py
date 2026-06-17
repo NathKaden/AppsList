@@ -1,8 +1,8 @@
 import os
 import json
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu, QPushButton, QFileDialog, QColorDialog, QScrollArea
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QPixmap, QColor
+from PyQt6.QtCore import Qt, QPointF, QSize
+from PyQt6.QtGui import QAction, QPixmap, QColor, QPainter, QBrush, QPen, QIcon, QPolygonF
 from functions.functions import terminal
 
 class DiskWidget(QWidget):
@@ -474,3 +474,71 @@ class SettingsWidget(QWidget):
         with open(self.settings_path, "w", encoding='utf-8') as f:
             json.dump(self.settings_data, f, indent=2, ensure_ascii=False)
         self.on_save()
+
+
+def create_gear_icon(color=Qt.GlobalColor.white):
+    import math
+    pixmap = QPixmap(32, 32)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(QBrush(color))
+    
+    center_x, center_y = 16.0, 16.0
+    outer_r = 13.0
+    inner_r = 9.0
+    
+    # Draw teeth
+    for i in range(8):
+        angle = i * (2 * math.pi / 8)
+        p1_x = center_x + (outer_r + 2.5) * math.cos(angle - 0.2)
+        p1_y = center_y + (outer_r + 2.5) * math.sin(angle - 0.2)
+        p2_x = center_x + (outer_r + 2.5) * math.cos(angle + 0.2)
+        p2_y = center_y + (outer_r + 2.5) * math.sin(angle + 0.2)
+        p3_x = center_x + inner_r * math.cos(angle + 0.4)
+        p3_y = center_y + inner_r * math.sin(angle + 0.4)
+        p4_x = center_x + inner_r * math.cos(angle - 0.4)
+        p4_y = center_y + inner_r * math.sin(angle - 0.4)
+        
+        polygon = QPolygonF([QPointF(p1_x, p1_y), QPointF(p2_x, p2_y), QPointF(p3_x, p3_y), QPointF(p4_x, p4_y)])
+        painter.drawPolygon(polygon)
+        
+    # Draw outer ring
+    painter.drawEllipse(QPointF(center_x, center_y), 11.0, 11.0)
+    
+    # Draw inner hole cutout
+    painter.setBrush(QBrush(Qt.GlobalColor.transparent))
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+    painter.drawEllipse(QPointF(center_x, center_y), 5.0, 5.0)
+    
+    painter.end()
+    return QIcon(pixmap)
+
+
+def create_home_icon(color=Qt.GlobalColor.white):
+    pixmap = QPixmap(32, 32)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(QBrush(color))
+    
+    # Draw roof (triangle)
+    roof = QPolygonF([
+        QPointF(16.0, 5.0),
+        QPointF(4.0, 16.0),
+        QPointF(28.0, 16.0)
+    ])
+    painter.drawPolygon(roof)
+    
+    # Draw body (rectangle)
+    painter.drawRect(7, 16, 18, 12)
+    
+    # Cutout the door
+    painter.setBrush(QBrush(Qt.GlobalColor.transparent))
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+    painter.drawRect(13, 20, 6, 8)
+    
+    painter.end()
+    return QIcon(pixmap)

@@ -5,12 +5,12 @@ import webbrowser
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton
-from PyQt6.QtCore import pyqtSignal, QEvent, Qt
+from PyQt6.QtCore import pyqtSignal, QEvent, Qt, QSize
 
 # Import des fonctions nécessaires, des modèles et des composants UI
 from functions.functions import getDisques, getNbApps, get_color
 from models import Database
-from ui.components import DiskWidget, TerminalWidget, build_menu_bar, SettingsWidget
+from ui.components import DiskWidget, TerminalWidget, build_menu_bar, SettingsWidget, create_gear_icon, create_home_icon
 
 class MainWindow(QMainWindow):
     changedToDark = pyqtSignal(bool)
@@ -38,17 +38,14 @@ class MainWindow(QMainWindow):
 
     def __initUi(self):
         # Create settings button
-        self.settings_button = QPushButton("⚙ Paramètres")
+        self.settings_button = QPushButton()
         self.settings_button.setObjectName("settingsButton")
         self.settings_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.settings_button.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
                 border: none;
-                color: #ffffff;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 4px 12px;
+                padding: 4px 8px;
                 margin-right: 10px;
             }
             QPushButton:hover {
@@ -56,6 +53,10 @@ class MainWindow(QMainWindow):
                 border-radius: 4px;
             }
         """)
+        self.settings_icon = create_gear_icon()
+        self.home_icon = create_home_icon()
+        self.settings_button.setIcon(self.settings_icon)
+        self.settings_button.setIconSize(QSize(20, 20))
         self.settings_button.clicked.connect(self.toggle_settings)
 
         # Build menu bar using components.py
@@ -151,10 +152,10 @@ class MainWindow(QMainWindow):
             self.settings_widget.rebuild_colors_list()
             self.settings_widget.path_input.setText(self.settings_widget.current_path)
             self.stacked_widget.setCurrentIndex(1)
-            self.settings_button.setText("🏠 Accueil")
+            self.settings_button.setIcon(self.home_icon)
         else:
             self.stacked_widget.setCurrentIndex(0)
-            self.settings_button.setText("⚙ Paramètres")
+            self.settings_button.setIcon(self.settings_icon)
 
     def on_settings_saved(self):
         path_settings = self.assetsdir + "settings.json"
@@ -170,11 +171,11 @@ class MainWindow(QMainWindow):
         
         self.__applyBDD()
         self.stacked_widget.setCurrentIndex(0)
-        self.settings_button.setText("⚙ Paramètres")
+        self.settings_button.setIcon(self.settings_icon)
 
     def on_settings_cancelled(self):
         self.stacked_widget.setCurrentIndex(0)
-        self.settings_button.setText("⚙ Paramètres")
+        self.settings_button.setIcon(self.settings_icon)
 
     def _on_terminal_close(self):
         self.input_open = False
