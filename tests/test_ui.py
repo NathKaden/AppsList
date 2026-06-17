@@ -231,14 +231,14 @@ class TestMainWindowOpenBdd(unittest.TestCase):
         win.deleteLater()
 
 
-from ui.components import AppLabel
-from models.app import App
-from models.launcher import Launcher
-from models.disk import Disk
-from models import Database
-
-class TestAppLabel(unittest.TestCase):
+class TestMainWindowAppDetails(unittest.TestCase):
     def setUp(self):
+        self.settings_path = "assets/settings.json"
+        self.backup_settings_path = "assets/settings_backup_test.json"
+        if os.path.exists(self.settings_path):
+            import shutil
+            shutil.copy(self.settings_path, self.backup_settings_path)
+            
         self.db_path = "tests/test_bdd_temp.json"
         self.initial_data = {
             "SSD Main": {
@@ -250,70 +250,65 @@ class TestAppLabel(unittest.TestCase):
         with open(self.db_path, "w", encoding="utf-8") as f:
             json.dump(self.initial_data, f, indent=4)
             
-        self.db = Database(self.db_path)
-        self.db.load()
-        
-        self.disk = self.db.disks["SSD Main"]
-        self.launcher = self.disk.launchers["Steam"]
-        self.app = self.launcher.apps[0]
-        
-        self.refresh_called = False
-        
-        self.label = AppLabel(
-            app=self.app,
-            launcher=self.launcher,
-            disk=self.disk,
-            db=self.db,
-            refresh_callback=self.on_refresh
-        )
+        if os.path.exists(self.settings_path):
+            with open(self.settings_path, "r", encoding="utf-8") as f:
+                settings = json.load(f)
+            settings["path_bdd"] = self.db_path
+            with open(self.settings_path, "w", encoding="utf-8") as f:
+                json.dump(settings, f, indent=4)
+
+        self.win = MainWindow()
 
     def tearDown(self):
-        self.label.deleteLater()
+        self.win.deleteLater()
+        if os.path.exists(self.backup_settings_path):
+            import shutil
+            shutil.move(self.backup_settings_path, self.settings_path)
         if os.path.exists(self.db_path):
             try:
                 os.remove(self.db_path)
             except OSError:
                 pass
 
-    def on_refresh(self):
-        self.refresh_called = True
+    def test_show_app_details(self):
+        app = self.win.db.disks["SSD Main"].launchers["Steam"].apps[0]
+        launcher = self.win.db.disks["SSD Main"].launchers["Steam"]
+        
+        self.win.show_app_details(app, launcher)
+        
+        self.assertFalse(self.win.side_panel.isHidden())
+        self.assertEqual(self.win.side_name_input.text(), "Celeste")
+        self.assertEqual(self.win.side_year_input.value(), 2018)
+        self.assertEqual(self.win.side_size_input.value(), 1.2)
 
-    @patch('PyQt6.QtWidgets.QMessageBox.question')
-    def test_delete_app_success(self, mock_question):
-        mock_question.return_value = QMessageBox.StandardButton.Yes
+    def test_save_app_details(self):
+        app = self.win.db.disks["SSD Main"].launchers["Steam"].apps[0]
+        launcher = self.win.db.disks["SSD Main"].launchers["Steam"]
         
-        self.label.delete_app()
+        self.win.show_app_details(app, launcher)
+        self.win.side_name_input.setText("Celeste Remastered")
+        self.win.side_year_input.setValue(2020)
+        self.win.side_size_input.setValue(2.5)
         
-        self.assertTrue(self.refresh_called)
-        self.assertEqual(len(self.launcher.apps), 0)
+        self.win.save_app_details()
         
-        # Verify db file is saved
+        self.assertTrue(self.win.side_panel.isHidden())
+        self.assertEqual(app.name, "Celeste Remastered")
+        self.assertEqual(app.year, 2020)
+        self.assertEqual(app.size, 2.5)
+        
         with open(self.db_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        self.assertEqual(data["SSD Main"]["Steam"], [])
+        self.assertEqual(data["SSD Main"]["Steam"][0]["nom"], "Celeste Remastered")
 
-    @patch('PyQt6.QtWidgets.QDialog.exec')
-    def test_modify_app_success(self, mock_dialog_exec):
-        mock_dialog_exec.return_value = QDialog.DialogCode.Accepted
+    @patch('PyQt6.QtWidgets.QMessageBox.question')
+    def test_delete_selected_app(self, mock_question):
+        mock_question.return_value = QMessageBox.StandardButton.Yes
+        app = self.win.db.disks["SSD Main"].launchers["Steam"].apps[0]
+        launcher = self.win.db.disks["SSD Main"].launchers["Steam"]
         
-        with patch('PyQt6.QtWidgets.QLineEdit.text') as mock_text, \
-             patch('PyQt6.QtWidgets.QSpinBox.value') as mock_spin, \
-             patch('PyQt6.QtWidgets.QDoubleSpinBox.value') as mock_double:
-             
-            mock_text.return_value = "Celeste Remastered"
-            mock_spin.return_value = 2020
-            mock_double.return_value = 2.5
-            
-            self.label.modify_app()
-            
-            self.assertTrue(self.refresh_called)
-            self.assertEqual(self.app.name, "Celeste Remastered")
-            self.assertEqual(self.app.year, 2020)
-            self.assertEqual(self.app.size, 2.5)
-            
-            # Verify db file is saved
-            with open(self.db_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            self.assertEqual(data["SSD Main"]["Steam"][0]["nom"], "Celeste Remastered")
-            self.assertEqual(data["SSD Main"]["Steam"][0]["année"], 2020)
-            self.assertEqual(data["SSD Main"]["Steam"][0]["taille"], 2.5)
+        self.win.show_app_details(app, launcher)
+        self.win.delete_selected_app()
+        
+        self.assertTrue(self.win.side_panel.isHidden())
+        self.assertEqual(len(launcher.apps), 0)

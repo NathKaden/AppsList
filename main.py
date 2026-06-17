@@ -4,7 +4,7 @@ import json
 import webbrowser
 
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton, QGraphicsScene, QFileDialog
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton, QGraphicsScene, QFileDialog, QMessageBox, QSpinBox, QDoubleSpinBox, QLineEdit
 from PyQt6.QtCore import pyqtSignal, QEvent, Qt, QSize
 
 # Import des fonctions nécessaires, des modèles et des composants UI
@@ -81,6 +81,112 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.stacked_widget)
         self.input_open = False
 
+        # Create side panel widget
+        self.side_panel = QWidget()
+        self.side_panel.setObjectName("sidePanel")
+        self.side_panel.setFixedWidth(250)
+        self.side_panel.hide()
+        
+        self.side_panel.setStyleSheet("""
+            QWidget#sidePanel {
+                background-color: #211f22;
+                border-left: 1px solid #3b3b54;
+            }
+            QLabel {
+                font-size: 13px;
+                color: #e0e0e0;
+            }
+            QLabel#sideTitle {
+                font-size: 15px;
+                font-weight: bold;
+                color: #ffffff;
+            }
+            QLineEdit, QSpinBox, QDoubleSpinBox {
+                background-color: #302E33;
+                color: white;
+                border: 1px solid #555555;
+                padding: 4px;
+                border-radius: 3px;
+            }
+            QPushButton {
+                background-color: #3b3b54;
+                border: 1px solid #59596B;
+                border-radius: 4px;
+                padding: 6px 12px;
+                color: white;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4c4c6d;
+            }
+            QPushButton#sideDeleteBtn {
+                background-color: #a33838;
+                border-color: #c74848;
+            }
+            QPushButton#sideDeleteBtn:hover {
+                background-color: #bd4242;
+            }
+            QPushButton#sideSaveBtn {
+                background-color: #4a8a4a;
+                border-color: #5fa85f;
+            }
+            QPushButton#sideSaveBtn:hover {
+                background-color: #58a258;
+            }
+        """)
+        
+        from PyQt6.QtWidgets import QFormLayout
+        side_layout = QVBoxLayout(self.side_panel)
+        side_layout.setContentsMargins(15, 15, 15, 15)
+        side_layout.setSpacing(10)
+        
+        title_label = QLabel("Détails du Jeu")
+        title_label.setObjectName("sideTitle")
+        side_layout.addWidget(title_label)
+        
+        sep = QWidget()
+        sep.setFixedHeight(1)
+        sep.setStyleSheet("background-color: #3b3b54;")
+        side_layout.addWidget(sep)
+        
+        form_layout = QFormLayout()
+        form_layout.setSpacing(8)
+        
+        self.side_name_input = QLineEdit()
+        self.side_year_input = QSpinBox()
+        self.side_year_input.setRange(1900, 2100)
+        
+        self.side_size_input = QDoubleSpinBox()
+        self.side_size_input.setRange(0.0, 10000.0)
+        self.side_size_input.setDecimals(1)
+        self.side_size_input.setSuffix(" Go")
+        
+        form_layout.addRow(QLabel("Nom :"), self.side_name_input)
+        form_layout.addRow(QLabel("Année :"), self.side_year_input)
+        form_layout.addRow(QLabel("Taille :"), self.side_size_input)
+        
+        side_layout.addLayout(form_layout)
+        side_layout.addSpacing(10)
+        
+        self.side_save_btn = QPushButton("Enregistrer")
+        self.side_save_btn.setObjectName("sideSaveBtn")
+        self.side_save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.side_save_btn.clicked.connect(self.save_app_details)
+        side_layout.addWidget(self.side_save_btn)
+        
+        self.side_delete_btn = QPushButton("Supprimer")
+        self.side_delete_btn.setObjectName("sideDeleteBtn")
+        self.side_delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.side_delete_btn.clicked.connect(self.delete_selected_app)
+        side_layout.addWidget(self.side_delete_btn)
+        
+        self.side_close_btn = QPushButton("Fermer")
+        self.side_close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.side_close_btn.clicked.connect(self.side_panel.hide)
+        side_layout.addWidget(self.side_close_btn)
+        
+        side_layout.addStretch()
+
     def __applyBDD(self):
         # Barre de statut
         statusbar = QStatusBar()
@@ -147,10 +253,21 @@ class MainWindow(QMainWindow):
         # Center initially on the content
         self.canvas_view.centerOn(bounds.center())
 
-        # Main page layout wrapping the QGraphicsView
+        # Horizontal layout for canvas + side panel
+        self.content_layout = QHBoxLayout()
+        self.content_layout.setContentsMargins(0, 0, 0, 0)
+        self.content_layout.setSpacing(0)
+        self.content_layout.addWidget(self.canvas_view, 1)
+        self.content_layout.addWidget(self.side_panel)
+        
+        # Hide side panel on new load
+        self.side_panel.hide()
+
+        # Main page layout wrapping the content layout
         main_page_layout = QVBoxLayout()
         main_page_layout.setContentsMargins(0, 0, 0, 0)
-        main_page_layout.addWidget(self.canvas_view)
+        main_page_layout.setSpacing(0)
+        main_page_layout.addLayout(self.content_layout, 1)
 
         self.main_page_widget = QWidget()
         self.main_page_widget.setLayout(main_page_layout)
@@ -273,6 +390,41 @@ class MainWindow(QMainWindow):
                 
             self.canvas_view.is_first_show = True
             self.refresh()
+
+    def show_app_details(self, app, launcher):
+        self.selected_app = app
+        self.selected_launcher = launcher
+        
+        self.side_name_input.setText(app.name)
+        self.side_year_input.setValue(int(app.year))
+        self.side_size_input.setValue(float(app.size))
+        
+        self.side_panel.show()
+
+    def save_app_details(self):
+        if hasattr(self, 'selected_app') and self.selected_app:
+            new_name = self.side_name_input.text().strip()
+            if new_name:
+                self.selected_app.name = new_name
+                self.selected_app.year = self.side_year_input.value()
+                self.selected_app.size = self.side_size_input.value()
+                self.db.save()
+                self.side_panel.hide()
+                self.refresh()
+
+    def delete_selected_app(self):
+        if hasattr(self, 'selected_app') and self.selected_app:
+            reply = QMessageBox.question(
+                self,
+                "Supprimer l'application",
+                f"Êtes-vous sûr de vouloir supprimer '{self.selected_app.name}' ?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self.db.delete_app_from_launcher(self.selected_app.name, self.selected_launcher.name)
+                self.side_panel.hide()
+                self.refresh()
 
     def toggle_settings(self):
         if self.stacked_widget.currentIndex() == 0:

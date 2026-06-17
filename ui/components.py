@@ -42,110 +42,12 @@ class AppLabel(QLabel):
                 background-color: rgba(255, 255, 255, 15);
             }
         """)
-        
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.show_context_menu)
-        
-    def show_context_menu(self, pos):
-        menu = QMenu(self)
-        menu.setStyleSheet("""
-            QMenu {
-                background-color: #29272b;
-                color: #ffffff;
-                border: 1px solid dimgrey;
-                border-radius: 5px;
-                padding: 4px;
-            }
-            QMenu::item {
-                padding: 4px 20px;
-                border-radius: 3px;
-            }
-            QMenu::item:selected {
-                background-color: #59596B;
-            }
-        """)
-        
-        modify_action = menu.addAction("Modifier...")
-        delete_action = menu.addAction("Supprimer")
-        
-        action = menu.exec(self.mapToGlobal(pos))
-        if action == modify_action:
-            self.modify_app()
-        elif action == delete_action:
-            self.delete_app()
 
-    def delete_app(self):
-        reply = QMessageBox.question(
-            self,
-            "Supprimer l'application",
-            f"Êtes-vous sûr de vouloir supprimer '{self.app.name}' ?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
-        if reply == QMessageBox.StandardButton.Yes:
-            self.db.delete_app_from_launcher(self.app.name, self.launcher.name)
-            self.refresh_callback()
-
-    def modify_app(self):
-        dialog = QDialog(self)
-        dialog.setWindowTitle(f"Modifier {self.app.name}")
-        dialog.setStyleSheet("""
-            QDialog {
-                background-color: #29272b;
-            }
-            QLabel {
-                color: #ffffff;
-            }
-            QLineEdit, QSpinBox, QDoubleSpinBox {
-                background-color: #302E33;
-                color: white;
-                border: 1px solid #555555;
-                padding: 4px;
-                border-radius: 3px;
-            }
-            QPushButton {
-                background-color: #3b3b54;
-                border: 1px solid #59596B;
-                border-radius: 4px;
-                padding: 6px 12px;
-                color: white;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #4c4c6d;
-            }
-        """)
-        
-        layout = QFormLayout(dialog)
-        
-        name_input = QLineEdit(self.app.name)
-        year_input = QSpinBox()
-        year_input.setRange(1900, 2100)
-        year_input.setValue(int(self.app.year))
-        
-        size_input = QDoubleSpinBox()
-        size_input.setRange(0.0, 10000.0)
-        size_input.setDecimals(1)
-        size_input.setValue(float(self.app.size))
-        size_input.setSuffix(" Go")
-        
-        layout.addRow("Nom :", name_input)
-        layout.addRow("Année :", year_input)
-        layout.addRow("Taille :", size_input)
-        
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, dialog)
-        buttons.accepted.connect(dialog.accept)
-        buttons.rejected.connect(dialog.reject)
-        layout.addRow(buttons)
-        
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            new_name = name_input.text().strip()
-            if new_name:
-                self.app.name = new_name
-                self.app.year = year_input.value()
-                self.app.size = size_input.value()
-                self.db.save()
-                self.refresh_callback()
+    def mousePressEvent(self, event):
+        # Open side panel on click
+        main_win = self.window()
+        if hasattr(main_win, 'show_app_details'):
+            main_win.show_app_details(self.app, self.launcher)
 
 
 class DiskWidget(QWidget):
