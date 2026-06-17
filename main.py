@@ -112,7 +112,15 @@ class MainWindow(QMainWindow):
         central_layout.setSpacing(15)
 
         for index, disk in enumerate(self.db.disks.values()):
-            disk_widget = DiskWidget(disk, index, self.assetsdir, get_color, self.settings.get("launchers", {}))
+            disk_widget = DiskWidget(
+                disk, 
+                index, 
+                self.assetsdir, 
+                get_color, 
+                self.settings.get("launchers", {}),
+                db=self.db,
+                refresh_callback=self.refresh
+            )
             central_layout.addWidget(disk_widget)
 
         # Initialize QGraphicsScene and add canvas_container to it

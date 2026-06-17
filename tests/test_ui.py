@@ -1,7 +1,7 @@
 import unittest
 import os
 import json
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QMessageBox, QDialog
 from ui.components import SettingsWidget
 
 # A single QApplication instance is required for creating widgets in PyQt
@@ -229,3 +229,91 @@ class TestMainWindowOpenBdd(unittest.TestCase):
         self.assertEqual(win.stacked_widget.currentIndex(), 0)
         
         win.deleteLater()
+
+
+from ui.components import AppLabel
+from models.app import App
+from models.launcher import Launcher
+from models.disk import Disk
+from models import Database
+
+class TestAppLabel(unittest.TestCase):
+    def setUp(self):
+        self.db_path = "tests/test_bdd_temp.json"
+        self.initial_data = {
+            "SSD Main": {
+                "Steam": [
+                    {"nom": "Celeste", "taille": 1.2, "année": 2018}
+                ]
+            }
+        }
+        with open(self.db_path, "w", encoding="utf-8") as f:
+            json.dump(self.initial_data, f, indent=4)
+            
+        self.db = Database(self.db_path)
+        self.db.load()
+        
+        self.disk = self.db.disks["SSD Main"]
+        self.launcher = self.disk.launchers["Steam"]
+        self.app = self.launcher.apps[0]
+        
+        self.refresh_called = False
+        
+        self.label = AppLabel(
+            app=self.app,
+            launcher=self.launcher,
+            disk=self.disk,
+            db=self.db,
+            refresh_callback=self.on_refresh
+        )
+
+    def tearDown(self):
+        self.label.deleteLater()
+        if os.path.exists(self.db_path):
+            try:
+                os.remove(self.db_path)
+            except OSError:
+                pass
+
+    def on_refresh(self):
+        self.refresh_called = True
+
+    @patch('PyQt6.QtWidgets.QMessageBox.question')
+    def test_delete_app_success(self, mock_question):
+        mock_question.return_value = QMessageBox.StandardButton.Yes
+        
+        self.label.delete_app()
+        
+        self.assertTrue(self.refresh_called)
+        self.assertEqual(len(self.launcher.apps), 0)
+        
+        # Verify db file is saved
+        with open(self.db_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.assertEqual(data["SSD Main"]["Steam"], [])
+
+    @patch('PyQt6.QtWidgets.QDialog.exec')
+    def test_modify_app_success(self, mock_dialog_exec):
+        mock_dialog_exec.return_value = QDialog.DialogCode.Accepted
+        
+        with patch('PyQt6.QtWidgets.QLineEdit.text') as mock_text, \
+             patch('PyQt6.QtWidgets.QSpinBox.value') as mock_spin, \
+             patch('PyQt6.QtWidgets.QDoubleSpinBox.value') as mock_double:
+             
+            mock_text.return_value = "Celeste Remastered"
+            mock_spin.return_value = 2020
+            mock_double.return_value = 2.5
+            
+            self.label.modify_app()
+            
+            self.assertTrue(self.refresh_called)
+            self.assertEqual(self.app.name, "Celeste Remastered")
+            self.assertEqual(self.app.year, 2020)
+            self.assertEqual(self.app.size, 2.5)
+            
+            # Verify db file is saved
+            with open(self.db_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.assertEqual(data["SSD Main"]["Steam"][0]["nom"], "Celeste Remastered")
+            self.assertEqual(data["SSD Main"]["Steam"][0]["année"], 2020)
+            self.assertEqual(data["SSD Main"]["Steam"][0]["taille"], 2.5)
