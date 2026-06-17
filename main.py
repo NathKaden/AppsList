@@ -212,6 +212,11 @@ class MainWindow(QMainWindow):
         self.canvas_view.is_first_show = True
         
         self.refresh()
+        
+        # Update SettingsWidget fields if initialized
+        if hasattr(self, 'settings_widget'):
+            self.settings_widget.load_settings()
+            self.settings_widget.path_input.setText(self.settings_widget.current_path)
 
     def open_bdd_file(self):
         initial_dir = os.path.dirname(self.settings["path_bdd"]) if "path_bdd" in self.settings else ""

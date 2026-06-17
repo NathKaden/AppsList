@@ -209,3 +209,21 @@ class TestMainWindowOpenBdd(unittest.TestCase):
         self.assertEqual(settings["path_bdd"], "bdd/BDDTest.json")
         
         win.deleteLater()
+
+    def test_new_bdd_updates_settings_widget(self):
+        win = MainWindow()
+        self.assertTrue(hasattr(win, 'settings_widget'))
+        
+        path_settings = win.assetsdir + "settings.json"
+        with open(path_settings, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        data["path_bdd"] = "bdd/BDD_new_test.json"
+        with open(path_settings, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+            
+        win.on_new_bdd_created("bdd/BDD_new_test.json")
+        
+        self.assertEqual(win.settings_widget.path_input.text(), "bdd/BDD_new_test.json")
+        
+        win.deleteLater()
