@@ -37,7 +37,6 @@ QMenu {
     padding: 4px;
     border: 1px solid dimgrey;
     border-radius: 5px;
-    overflow: hidden;
 }
 
 QMenu::item {
@@ -73,11 +72,7 @@ QStatusBar QLabel {
 }
 #disque {
     background-color: transparent;
-    qproperty-alignment: AlignRight;
     border-right: 3px solid grey;
-    padding-right: 10px;
-    margin-right: 10px;
-    width: fit-content;
 }
 
 QLineEdit {

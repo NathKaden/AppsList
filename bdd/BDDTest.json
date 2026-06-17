@@ -17,6 +17,11 @@
                 "nom": "Portal Source_Unpack",
                 "taille": 9.5,
                 "année": 2007
+            },
+            {
+                "nom": "Nom app",
+                "taille": 42.0,
+                "année": 2005
             }
         ]
     },
@@ -24,20 +29,20 @@
         "Battle.net": [
             {
                 "nom": "Modern Warfare",
-                "année": 2019,
-                "taille": 150
+                "taille": 150,
+                "année": 2019
             }
         ],
         "EA": [
             {
                 "nom": "NFS : The Run",
-                "année": 2011,
-                "taille": 15.4
+                "taille": 15.4,
+                "année": 2011
             },
             {
                 "nom": "NFS : Payback",
-                "année": 2017,
-                "taille": 27.9
+                "taille": 27.9,
+                "année": 2017
             }
         ]
     }

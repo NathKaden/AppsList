@@ -15,17 +15,16 @@
 ## 📁 Fonctionnement des dossiers
 
 Le `main.py` est le fichier principal, l'application. C'est la dernière meilleure version de l'application.  
-Le dossier `ver/` contient les versions de l'application, à chaque fonctionnalité, une version est ajoutée.
 Le dossier `tests/` est le "bac à sable" de l'application, c'est là qu'on fait nos tests et où on développe nos trucs.
 
 ## 🖥️ Interface prévue
-![Voir image](https://github.com/NathKaden/AppsList/blob/main/assets/maquette.png)
+![Voir image](https://github.com/NathKaden/AppsList/blob/main/assets/medias/maquette.png)
 >Note :
 >Ligne d'une app : logo launcher | jeu | taille | année de sortie
 
 ### En-tête :
 Fichier {ouvrir, sauvegarder, ouvrir l'emplacement, quitter}  
-Edit {copier, coller, trouver (deplacerjeu)}  
+Edit {copier, coller, trouver, (deplacerjeu)}  
 Vue {liste, tri, thèmes, langue}  
 Autres {Commande (terminal), GitHub, crédits}
 

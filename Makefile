@@ -8,7 +8,7 @@ else
     CLEAN_CMD = rm -rf __pycache__ functions/__pycache__ tests/__pycache__
 endif
 
-.PHONY: setup run clean
+.PHONY: setup run clean test
 
 setup:
 	python -m venv .venv
@@ -16,6 +16,9 @@ setup:
 
 run:
 	$(VENV_BIN)/python main.py
+
+test:
+	$(VENV_BIN)/python -m unittest discover -s tests
 
 clean:
 	$(CLEAN_CMD)

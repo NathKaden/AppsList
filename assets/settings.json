@@ -1,4 +1,34 @@
 {
   "path_bdd": "bdd/BDDTest.json",
-  "colors": ["#ED7F10", "#BDFF00", "skyblue"]
+  "colors": ["#ED7F10", "#BDFF00", "skyblue"],
+  "launchers": {
+    "Steam": {
+      "color": "#8aa5bf",
+      "image": "steam.png"
+    },
+    "Epic Games": {
+      "color": "#ffffff",
+      "image": "epic_games.png"
+    },
+    "Battle.net": {
+      "color": "#8ac7ff",
+      "image": "battle_net.png"
+    },
+    "EA": {
+      "color": "#ffa3a3",
+      "image": "ea.png"
+    },
+    "Ubisoft": {
+      "color": "#9091ad",
+      "image": "ubisoft.png"
+    },
+    "Rockstar": {
+      "color": "#ffd780",
+      "image": "rockstar.png"
+    },
+    "Microsoft Store": {
+      "color": "lightgrey",
+      "image": "microsoft_store.png"
+    }
+  }
 }
