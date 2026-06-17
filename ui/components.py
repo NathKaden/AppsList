@@ -176,17 +176,22 @@ class NewBddInputWidget(QLineEdit):
         self.assetsdir = assetsdir
         self.on_created = on_created_callback
         self.on_close = on_close_callback
-        self.setPlaceholderText("Nom du disque")
+        self.setPlaceholderText("Nom de la BDD")
         self.returnPressed.connect(self.create_new_bdd)
 
     def create_new_bdd(self):
-        disk_name = self.text().strip()
-        if not disk_name:
+        bdd_name = self.text().strip()
+        if not bdd_name:
             self.on_close()
             self.deleteLater()
             return
             
-        safe_filename = "".join(c for c in disk_name if c.isalnum() or c in (' ', '_', '-')).strip()
+        # Sanitize filename: replace non-alphanumeric chars (except _ and -) with underscore
+        safe_filename = "".join(c if (c.isalnum() or c in ('_', '-')) else '_' for c in bdd_name).strip()
+        while '__' in safe_filename:
+            safe_filename = safe_filename.replace('__', '_')
+        safe_filename = safe_filename.strip('_')
+        
         if not safe_filename:
             safe_filename = "NewBDD"
             
@@ -197,17 +202,11 @@ class NewBddInputWidget(QLineEdit):
         
         new_bdd_path = os.path.join(bdd_dir, f"{safe_filename}.json").replace("\\", "/")
         
-        counter = 1
-        base_path = os.path.join(bdd_dir, safe_filename).replace("\\", "/")
-        while os.path.exists(new_bdd_path):
-            new_bdd_path = f"{base_path}_{counter}.json"
-            counter += 1
-            
-        initial_data = {
-            disk_name: {}
-        }
-        with open(new_bdd_path, "w", encoding="utf-8") as f:
-            json.dump(initial_data, f, ensure_ascii=False, indent=4)
+        # If the BDD file does not exist, initialize it with empty object
+        if not os.path.exists(new_bdd_path):
+            initial_data = {}
+            with open(new_bdd_path, "w", encoding="utf-8") as f:
+                json.dump(initial_data, f, ensure_ascii=False, indent=4)
             
         settings_path = self.assetsdir + "settings.json"
         with open(settings_path, "r", encoding="utf-8") as f:
