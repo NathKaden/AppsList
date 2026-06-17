@@ -4,6 +4,8 @@ import json
 from PyQt6.QtWidgets import QApplication, QMessageBox, QDialog
 from ui.components import SettingsWidget
 
+REAL_OPEN = open
+
 # A single QApplication instance is required for creating widgets in PyQt
 app = QApplication.instance()
 if app is None:
@@ -403,3 +405,62 @@ class TestMainWindowAppDetails(unittest.TestCase):
         self.win.stacked_widget.setCurrentIndex(1)
         self.win.rechercher_jeu()
         mock_get_text.assert_not_called()
+
+    @patch('PyQt6.QtWidgets.QMessageBox.information')
+    @patch('ctypes.windll.kernel32.GetVolumeInformationW')
+    @patch('os.path.isdir')
+    @patch('os.listdir')
+    @patch('builtins.open')
+    def test_remplir_automatiquement_success(self, mock_open, mock_listdir, mock_isdir, mock_get_volume, mock_info):
+        def side_effect_volume(drive, buf, *args):
+            buf.value = "SSD Main"
+            return True
+        mock_get_volume.side_effect = side_effect_volume
+        
+        mock_isdir.side_effect = lambda path: "steamapps" in path.lower() or "manifests" in path.lower() or path.endswith("Steam")
+        
+        def side_effect_listdir(path):
+            if "steamapps" in path.lower():
+                return ["appmanifest_123.acf"]
+            if "manifests" in path.lower():
+                return ["gta.item"]
+            return []
+        mock_listdir.side_effect = side_effect_listdir
+        
+        from unittest.mock import mock_open as m_open
+        acf_content = '"name" "Mock Steam Game"\n"SizeOnDisk" "10737418240"'
+        epic_content = '{"DisplayName": "Mock Epic Game", "InstallLocation": "C:\\\\Games\\\\Epic", "InstallSize": 21474836480}'
+        
+        original_open = REAL_OPEN
+        def side_effect_open(path, *args, **kwargs):
+            if "temp" in path or "settings" in path or "BDD" in path:
+                return original_open(path, *args, **kwargs)
+            content = ""
+            if "libraryfolders.vdf" in path:
+                content = '"libraryfolders" { "0" { "path" "C:\\\\Program Files (x86)\\\\Steam" } }'
+            elif "appmanifest_" in path:
+                content = acf_content
+            elif "gta.item" in path:
+                content = epic_content
+            else:
+                content = "{}"
+            return m_open(read_data=content).return_value
+            
+        mock_open.side_effect = side_effect_open
+        
+        self.win.db.disks["SSD Main"].launchers = {}
+        self.win.db.save()
+        
+        self.win.remplir_automatiquement()
+        
+        mock_info.assert_called_once()
+        
+        steam_launcher = self.win.db.disks["SSD Main"].launchers.get("Steam")
+        self.assertIsNotNone(steam_launcher)
+        self.assertEqual(steam_launcher.apps[0].name, "Mock Steam Game")
+        self.assertEqual(steam_launcher.apps[0].size, 10.0)
+        
+        epic_launcher = self.win.db.disks["SSD Main"].launchers.get("Epic Games")
+        self.assertIsNotNone(epic_launcher)
+        self.assertEqual(epic_launcher.apps[0].name, "Mock Epic Game")
+        self.assertEqual(epic_launcher.apps[0].size, 20.0)

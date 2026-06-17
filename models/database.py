@@ -75,7 +75,8 @@ class Database:
         disk = self.disks[disk_name]
         
         if launcher_name not in disk.launchers:
-            return "Erreur : Launcher"
+            from models.launcher import Launcher
+            disk.launchers[launcher_name] = Launcher(launcher_name)
         launcher = disk.launchers[launcher_name]
         
         # Check if app already exists in this launcher

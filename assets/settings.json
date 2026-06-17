@@ -1,6 +1,10 @@
 {
-  "path_bdd": "bdd/BDDTest.json",
-  "colors": ["#ED7F10", "#BDFF00", "skyblue"],
+  "path_bdd": "C:/Users/boula/Desktop/main/IDE/AppsList/AppsList/bdd/msiNath.json",
+  "colors": [
+    "#ED7F10",
+    "#BDFF00",
+    "skyblue"
+  ],
   "launchers": {
     "Steam": {
       "color": "#8aa5bf",

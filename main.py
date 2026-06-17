@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
             on_open=self.open_bdd_file,
             on_refresh=self.refresh,
             on_search=self.rechercher_jeu,
+            on_autofill=self.remplir_automatiquement,
             settings_button=self.settings_button
         )
         self.setMenuBar(menuBar)
@@ -152,7 +153,7 @@ class MainWindow(QMainWindow):
         
         self.side_name_input = QLineEdit()
         self.side_year_input = QSpinBox()
-        self.side_year_input.setRange(1900, 2100)
+        self.side_year_input.setRange(0, 2100)
         self.side_year_input.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
         
         self.side_size_input = QDoubleSpinBox()
@@ -508,6 +509,187 @@ class MainWindow(QMainWindow):
                 self,
                 "Jeu non trouvé",
                 f"Le jeu '{game_name}' n'a pas été trouvé."
+            )
+
+    def remplir_automatiquement(self):
+        import ctypes
+        import string
+        import re
+        import os
+        from PyQt6.QtWidgets import QMessageBox
+
+        def get_existing_drives():
+            drives = []
+            bitmask = ctypes.windll.kernel32.GetLogicalDrives()
+            for letter in string.ascii_uppercase:
+                if bitmask & 1:
+                    drives.append(f"{letter}:\\")
+                bitmask >>= 1
+            return drives
+
+        def get_volume_label(drive_letter):
+            volumeNameBuffer = ctypes.create_unicode_buffer(1024)
+            fileSystemNameBuffer = ctypes.create_unicode_buffer(1024)
+            serial_number = ctypes.c_ulong(0)
+            max_component_length = ctypes.c_ulong(0)
+            file_system_flags = ctypes.c_ulong(0)
+            
+            rc = ctypes.windll.kernel32.GetVolumeInformationW(
+                ctypes.c_wchar_p(drive_letter),
+                volumeNameBuffer,
+                ctypes.sizeof(volumeNameBuffer),
+                ctypes.byref(serial_number),
+                ctypes.byref(max_component_length),
+                ctypes.byref(file_system_flags),
+                fileSystemNameBuffer,
+                ctypes.sizeof(fileSystemNameBuffer)
+            )
+            if rc:
+                return volumeNameBuffer.value
+            return ""
+
+        def find_matching_disk(db, path):
+            drive = os.path.splitdrive(path)[0] + "\\"
+            label = get_volume_label(drive).lower().strip()
+            
+            for disk_name in db.disks.keys():
+                if disk_name.lower().strip() == label:
+                    return disk_name
+                    
+            for disk_name in db.disks.keys():
+                if disk_name.lower().strip() in label or label in disk_name.lower().strip():
+                    if label:
+                        return disk_name
+                        
+            for disk_name in db.disks.keys():
+                if drive.lower() in disk_name.lower():
+                    return disk_name
+                    
+            if db.disks:
+                return list(db.disks.keys())[0]
+            return None
+
+        def parse_acf(filepath):
+            info = {}
+            try:
+                with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                matches = re.findall(r'"([^"]+)"\s+"([^"]+)"', content)
+                for key, val in matches:
+                    info[key.lower()] = val
+            except Exception as e:
+                print(f"Error parsing {filepath}: {e}")
+            return info
+
+        def get_steam_library_folders():
+            paths = set()
+            default_steam_paths = [
+                r"C:\Program Files (x86)\Steam",
+                r"C:\Program Files\Steam",
+            ]
+            
+            drives = get_existing_drives()
+            for drive in drives:
+                default_steam_paths.append(os.path.join(drive, "Steam"))
+                default_steam_paths.append(os.path.join(drive, "SteamLibrary"))
+                default_steam_paths.append(os.path.join(drive, "Program Files (x86)", "Steam"))
+                default_steam_paths.append(os.path.join(drive, "Program Files", "Steam"))
+
+            for base_path in default_steam_paths:
+                apps_path = os.path.join(base_path, "steamapps")
+                if os.path.isdir(apps_path):
+                    paths.add(apps_path)
+                    
+                    vdf_path = os.path.join(apps_path, "libraryfolders.vdf")
+                    if os.path.isfile(vdf_path):
+                        try:
+                            with open(vdf_path, "r", encoding="utf-8", errors="ignore") as f:
+                                content = f.read()
+                            vdf_paths = re.findall(r'"path"\s+"([^"]+)"', content)
+                            for vp in vdf_paths:
+                                vp_normalized = vp.replace("\\\\", "\\")
+                                vp_apps = os.path.join(vp_normalized, "steamapps")
+                                if os.path.isdir(vp_apps):
+                                    paths.add(vp_apps)
+                        except Exception as e:
+                            print(f"Error reading libraryfolders.vdf: {e}")
+                            
+            return list(paths)
+
+        steam_added = 0
+        epic_added = 0
+
+        # Scan Steam
+        library_folders = get_steam_library_folders()
+        for folder in library_folders:
+            try:
+                for filename in os.listdir(folder):
+                    if filename.endswith(".acf") and filename.startswith("appmanifest_"):
+                        filepath = os.path.join(folder, filename)
+                        info = parse_acf(filepath)
+                        game_name = info.get("name")
+                        if game_name:
+                            size_bytes = info.get("sizeondisk", "0")
+                            try:
+                                size_gb = round(float(size_bytes) / (1024**3), 1)
+                            except ValueError:
+                                size_gb = 0.0
+                            
+                            disk_name = find_matching_disk(self.db, folder)
+                            if disk_name:
+                                res = self.db.add_app(disk_name, "Steam", game_name, size_gb, year=0)
+                                if "succès" in res:
+                                    steam_added += 1
+            except Exception as e:
+                print(f"Error scanning Steam folder {folder}: {e}")
+
+        # Scan Epic Games
+        manifest_dir = r"C:\ProgramData\Epic\EpicGamesLauncher\Data\Manifests"
+        if os.path.isdir(manifest_dir):
+            try:
+                for filename in os.listdir(manifest_dir):
+                    if filename.endswith(".item"):
+                        filepath = os.path.join(manifest_dir, filename)
+                        try:
+                            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                                data = json.load(f)
+                            
+                            game_name = data.get("DisplayName")
+                            install_loc = data.get("InstallLocation")
+                            
+                            if game_name and install_loc:
+                                size_bytes = data.get("InstallSize", 0)
+                                try:
+                                    size_gb = round(float(size_bytes) / (1024**3), 1)
+                                except (ValueError, TypeError):
+                                    size_gb = 0.0
+                                    
+                                disk_name = find_matching_disk(self.db, install_loc)
+                                if disk_name:
+                                    res = self.db.add_app(disk_name, "Epic Games", game_name, size_gb, year=0)
+                                    if "succès" in res:
+                                        epic_added += 1
+                        except Exception as e:
+                            print(f"Error reading Epic manifest {filename}: {e}")
+            except Exception as e:
+                print(f"Error scanning Epic manifests: {e}")
+
+        # Refresh BDD/UI
+        self.refresh()
+
+        # Alert the user
+        total_added = steam_added + epic_added
+        if total_added > 0:
+            QMessageBox.information(
+                self,
+                "Remplissage automatique",
+                f"{steam_added} jeux Steam et {epic_added} jeux Epic Games ont été ajoutés avec succès !"
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "Remplissage automatique",
+                "Aucun nouveau jeu n'a été détecté ou ajouté."
             )
 
     def _on_terminal_close(self):

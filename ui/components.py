@@ -23,7 +23,9 @@ class LogoLabel(QWidget):
 
 class AppLabel(QLabel):
     def __init__(self, app, launcher, disk, db, refresh_callback, main_window=None, parent=None):
-        super().__init__(f'{app.name} ({app.year}) - {app.size} Go', parent)
+        year_txt = f" ({app.year})" if app.year != 0 else ""
+        size_txt = f" - {app.size} Go" if app.size > 0 else ""
+        super().__init__(f"{app.name}{year_txt}{size_txt}", parent)
         self.app = app
         self.launcher = launcher
         self.disk = disk
@@ -262,7 +264,7 @@ class NewBddInputWidget(QLineEdit):
         self.deleteLater()
 
 
-def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_refresh, on_search=None, settings_button=None):
+def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_refresh, on_search=None, on_autofill=None, settings_button=None):
     menuBar = QMenuBar(parent)
     menuBar.setObjectName("mainMenuBar")
     menuBar.setMouseTracking(True)
@@ -271,12 +273,15 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_
     fileMenu = QMenu('Fichier', parent)
     fileMenu.setCursor(Qt.CursorShape.PointingHandCursor)
     newAction = QAction('Nouveau', parent)
+    newAction.setStatusTip('  Nouvelle BDD')
     newAction.triggered.connect(on_new)
     openAction = QAction('Ouvrir', parent)
+    openAction.setStatusTip('  Ouvrir une BDD')
     openAction.triggered.connect(on_open)
     refreshAction = QAction('Actualiser', parent)
     refreshAction.triggered.connect(on_refresh)
     exitAction = QAction('Quitter', parent)
+    exitAction.setStatusTip('  Au revoir')
     exitAction.triggered.connect(on_exit)
     fileMenu.addAction(newAction)
     fileMenu.addAction(openAction)
@@ -286,15 +291,24 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_
     editMenu = QMenu('Editer', parent)
     editMenu.setCursor(Qt.CursorShape.PointingHandCursor)
     searchAction = QAction('Rechercher', parent)
+    searchAction.setStatusTip('  Rechercher et modifier')
     searchAction.setShortcut(QKeySequence("Ctrl+F"))
     if on_search:
         searchAction.triggered.connect(on_search)
     editMenu.addAction(searchAction)
 
+    autofillAction = QAction('Remplir auto.', parent)
+    autofillAction.setStatusTip('  Remplir avec les jeux')
+    if on_autofill:
+        autofillAction.triggered.connect(on_autofill)
+    editMenu.addAction(autofillAction)
+
     viewMenu = QMenu('Vue', parent)
     viewMenu.setCursor(Qt.CursorShape.PointingHandCursor)
-    listAction = QAction('Liste', parent)
+    listAction = QAction('Changer l\'axe', parent)
+    listAction.setStatusTip('  Axe X ou Y')
     sortAction = QAction('Trier', parent)
+    sortAction.setStatusTip('  (ne fonctionne pas)')
     viewMenu.addAction(listAction)
     viewMenu.addAction(sortAction)
 
