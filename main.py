@@ -4,7 +4,7 @@ import json
 import webbrowser
 
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton, QGraphicsScene
+from PyQt6.QtWidgets import QVBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton, QGraphicsScene, QFileDialog
 from PyQt6.QtCore import pyqtSignal, QEvent, Qt, QSize
 
 # Import des fonctions nécessaires, des modèles et des composants UI
@@ -66,6 +66,7 @@ class MainWindow(QMainWindow):
             on_terminal=self.open_terminal,
             on_github=self.open_github,
             on_new=self.open_new_bdd_input,
+            on_open=self.open_bdd_file,
             settings_button=self.settings_button
         )
         self.setMenuBar(menuBar)
@@ -211,6 +212,50 @@ class MainWindow(QMainWindow):
         self.canvas_view.is_first_show = True
         
         self.refresh()
+
+    def open_bdd_file(self):
+        initial_dir = os.path.dirname(self.settings["path_bdd"]) if "path_bdd" in self.settings else ""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Choisir la base de données",
+            initial_dir,
+            "Fichiers JSON (*.json)"
+        )
+        if file_path:
+            # Update settings.json
+            path_settings = self.assetsdir + "settings.json"
+            with open(path_settings, "r", encoding="utf-8") as f:
+                settings_data = json.load(f)
+            
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            bdd_dir = os.path.join(current_dir, "bdd").replace("\\", "/")
+            normalized_file_path = file_path.replace("\\", "/")
+            
+            # Use relative path if the file is inside the project's bdd/ folder
+            if normalized_file_path.startswith(bdd_dir):
+                rel_path = "bdd/" + os.path.basename(normalized_file_path)
+            else:
+                rel_path = normalized_file_path
+                
+            settings_data["path_bdd"] = rel_path
+            
+            with open(path_settings, "w", encoding="utf-8") as f:
+                json.dump(settings_data, f, indent=2, ensure_ascii=False)
+                
+            self.settings = settings_data
+            if not os.path.isabs(self.settings["path_bdd"]):
+                self.settings["path_bdd"] = os.path.abspath(os.path.join(current_dir, self.settings["path_bdd"]))
+                
+            self.db = Database(self.settings["path_bdd"])
+            self.db.load()
+            
+            # Update SettingsWidget fields if initialized
+            if hasattr(self, 'settings_widget'):
+                self.settings_widget.load_settings()
+                self.settings_widget.path_input.setText(self.settings_widget.current_path)
+                
+            self.canvas_view.is_first_show = True
+            self.refresh()
 
     def toggle_settings(self):
         if self.stacked_widget.currentIndex() == 0:

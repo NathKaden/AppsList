@@ -175,3 +175,37 @@ class TestNewBddInputWidget(unittest.TestCase):
         # Clean up the pre-created file
         if os.path.exists(existing_path):
             os.remove(existing_path)
+
+
+from unittest.mock import patch
+from main import MainWindow
+
+class TestMainWindowOpenBdd(unittest.TestCase):
+    def setUp(self):
+        self.settings_path = "assets/settings.json"
+        self.backup_settings_path = "assets/settings_backup_test.json"
+        if os.path.exists(self.settings_path):
+            import shutil
+            shutil.copy(self.settings_path, self.backup_settings_path)
+            
+    def tearDown(self):
+        if os.path.exists(self.backup_settings_path):
+            import shutil
+            shutil.move(self.backup_settings_path, self.settings_path)
+
+    @patch('PyQt6.QtWidgets.QFileDialog.getOpenFileName')
+    def test_open_bdd_file(self, mock_get_open):
+        current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        target_file = os.path.join(current_dir, "bdd", "BDDTest.json").replace("\\", "/")
+        mock_get_open.return_value = (target_file, "JSON Files (*.json)")
+        
+        win = MainWindow()
+        win.open_bdd_file()
+        
+        self.assertEqual(win.db.filepath.replace("\\", "/"), target_file)
+        
+        with open(self.settings_path, "r", encoding="utf-8") as f:
+            settings = json.load(f)
+        self.assertEqual(settings["path_bdd"], "bdd/BDDTest.json")
+        
+        win.deleteLater()
