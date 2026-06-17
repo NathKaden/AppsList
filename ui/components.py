@@ -32,9 +32,17 @@ class DiskWidget(QWidget):
         self.init_ui()
 
     def init_ui(self):
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setObjectName("DiskWidget")
+        self.setStyleSheet("""
+            QWidget#DiskWidget {
+                background-color: rgba(0, 0, 0, 0.05);
+                border-radius: 6px;
+            }
+        """)
         disk_layout = QHBoxLayout(self)
-        disk_layout.setContentsMargins(0, 0, 0, 0)
-        disk_layout.setSpacing(0)
+        disk_layout.setContentsMargins(6, 6, 6, 6)
+        disk_layout.setSpacing(10)
 
         # Determine if it's SSD or HDD
         if 'ssd' in self.disk.name.lower():
