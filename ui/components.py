@@ -1,6 +1,6 @@
 import os
 import json
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu, QPushButton, QFileDialog, QColorDialog, QScrollArea, QGraphicsView, QGraphicsScene
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu, QPushButton, QFileDialog, QColorDialog, QScrollArea, QGraphicsView, QGraphicsScene, QApplication
 from PyQt6.QtCore import Qt, QPointF, QSize
 from PyQt6.QtGui import QAction, QPixmap, QColor, QPainter, QBrush, QPen, QIcon, QPolygonF
 from functions.functions import terminal
@@ -50,7 +50,8 @@ class DiskWidget(QWidget):
         
         if os.path.exists(image_disque):
             pixmap = QPixmap(image_disque)
-            dpr = self.devicePixelRatioF()
+            app = QApplication.instance()
+            dpr = app.primaryScreen().devicePixelRatio() if app else self.devicePixelRatioF()
             target_w = int(25 * dpr)
             target_h = int(25 * dpr)
             scaled_pixmap = pixmap.scaled(
@@ -121,7 +122,8 @@ class DiskWidget(QWidget):
             
             if image_path and os.path.exists(image_path):
                 pixmap = QPixmap(image_path)
-                dpr = self.devicePixelRatioF()
+                app = QApplication.instance()
+                dpr = app.primaryScreen().devicePixelRatio() if app else self.devicePixelRatioF()
                 target_w = int(20 * dpr)
                 target_h = int(20 * dpr)
                 scaled_pixmap = pixmap.scaled(
@@ -572,7 +574,10 @@ class CanvasView(QGraphicsView):
             if self.scene():
                 bounds = self.scene().itemsBoundingRect()
                 if bounds.isValid() and not bounds.isEmpty():
-                    self.centerOn(bounds.center())
+                    # Align to the top of the canvas vertically, center horizontally
+                    view_height = self.viewport().height()
+                    top_center = QPointF(bounds.center().x(), bounds.top() + view_height / 2.0)
+                    self.centerOn(top_center)
                     self.is_first_show = False
 
     def wheelEvent(self, event):
