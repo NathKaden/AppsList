@@ -225,7 +225,8 @@ class MainWindow(QMainWindow):
                 get_color, 
                 self.settings.get("launchers", {}),
                 db=self.db,
-                refresh_callback=self.refresh
+                refresh_callback=self.refresh,
+                main_window=self
             )
             central_layout.addWidget(disk_widget)
 

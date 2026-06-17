@@ -312,3 +312,10 @@ class TestMainWindowAppDetails(unittest.TestCase):
         
         self.assertTrue(self.win.side_panel.isHidden())
         self.assertEqual(len(launcher.apps), 0)
+
+    def test_app_label_resolves_main_window(self):
+        from ui.components import AppLabel
+        app_labels = self.win.canvas_container.findChildren(AppLabel)
+        self.assertTrue(len(app_labels) > 0)
+        for label in app_labels:
+            self.assertEqual(label.get_main_window(), self.win)

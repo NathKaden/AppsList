@@ -22,13 +22,14 @@ class LogoLabel(QWidget):
 
 
 class AppLabel(QLabel):
-    def __init__(self, app, launcher, disk, db, refresh_callback, parent=None):
+    def __init__(self, app, launcher, disk, db, refresh_callback, main_window=None, parent=None):
         super().__init__(f'{app.name} ({app.year}) - {app.size} Go', parent)
         self.app = app
         self.launcher = launcher
         self.disk = disk
         self.db = db
         self.refresh_callback = refresh_callback
+        self.main_window = main_window
         
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setObjectName("appLabel")
@@ -43,22 +44,31 @@ class AppLabel(QLabel):
             }
         """)
 
+    def get_main_window(self):
+        if self.main_window is not None:
+            return self.main_window
+        if hasattr(self, 'refresh_callback') and hasattr(self.refresh_callback, '__self__'):
+            return self.refresh_callback.__self__
+        return self.window()
+
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            main_win = self.window()
+        if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
+            main_win = self.get_main_window()
             if hasattr(main_win, 'show_app_details'):
                 main_win.show_app_details(self.app, self.launcher)
-        super().mousePressEvent(event)
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
     def contextMenuEvent(self, event):
-        main_win = self.window()
+        main_win = self.get_main_window()
         if hasattr(main_win, 'show_app_details'):
             main_win.show_app_details(self.app, self.launcher)
         event.accept()
 
 
 class DiskWidget(QWidget):
-    def __init__(self, disk, index, assetsdir, get_color, launchers_config=None, db=None, refresh_callback=None, parent=None):
+    def __init__(self, disk, index, assetsdir, get_color, launchers_config=None, db=None, refresh_callback=None, main_window=None, parent=None):
         super().__init__(parent)
         self.disk = disk
         self.index = index
@@ -67,6 +77,7 @@ class DiskWidget(QWidget):
         self.launchers_config = launchers_config if launchers_config is not None else {}
         self.db = db
         self.refresh_callback = refresh_callback
+        self.main_window = main_window
         self.init_ui()
 
     def init_ui(self):
@@ -189,7 +200,7 @@ class DiskWidget(QWidget):
 
             apps_layout = QVBoxLayout()
             for app in launcher.apps:
-                app_label = AppLabel(app, launcher, self.disk, self.db, self.refresh_callback, self)
+                app_label = AppLabel(app, launcher, self.disk, self.db, self.refresh_callback, main_window=self.main_window, parent=self)
                 apps_layout.addWidget(app_label)
 
             launcher_layout.addLayout(apps_layout)
