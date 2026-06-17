@@ -16,10 +16,16 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.assetsdir = "./assets/"
+        # Get path relative to the script directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.assetsdir = os.path.join(current_dir, "assets").replace("\\", "/") + "/"
         path_settings = self.assetsdir + "settings.json"
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
             self.settings = json.load(fichiersettings)
+
+        if not os.path.isabs(self.settings["path_bdd"]):
+            self.settings["path_bdd"] = os.path.abspath(os.path.join(current_dir, self.settings["path_bdd"]))
+            
         self.__initUi()
         self.__applyBDD()
         self.__applyTheme()
@@ -28,7 +34,7 @@ class MainWindow(QMainWindow):
         menuBar = QMenuBar(self)
         self.setMenuBar(menuBar)
         self.setWindowTitle("AppsList")
-        self.setWindowIcon(QIcon(self.assetsdir+'/icon.jpg'))
+        self.setWindowIcon(QIcon(self.assetsdir + 'icon.jpg'))
         self.setGeometry(400, 300, 750, 480)  # (x, y, width, height)
 
         fileMenu = QMenu('Fichier', self)
