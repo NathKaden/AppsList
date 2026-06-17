@@ -1,7 +1,8 @@
 import os
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu
+import json
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu, QPushButton, QFileDialog, QColorDialog, QScrollArea
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction, QPixmap
+from PyQt6.QtGui import QAction, QPixmap, QColor
 from functions.functions import terminal
 
 class DiskWidget(QWidget):
@@ -178,7 +179,7 @@ class TerminalWidget(QLineEdit):
         self.deleteLater()
 
 
-def build_menu_bar(parent, on_exit, on_terminal, on_github):
+def build_menu_bar(parent, on_exit, on_terminal, on_github, settings_button=None):
     menuBar = QMenuBar(parent)
     menuBar.setObjectName("mainMenuBar")
     menuBar.setMouseTracking(True)
@@ -234,4 +235,255 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github):
     menuBar.addMenu(viewMenu)
     menuBar.addMenu(otherMenu)
 
+    if settings_button is not None:
+        menuBar.setCornerWidget(settings_button, Qt.Corner.TopRightCorner)
+
     return menuBar
+
+
+class SettingsWidget(QWidget):
+    def __init__(self, settings_path, on_save, on_cancel, parent=None):
+        super().__init__(parent)
+        self.settings_path = settings_path
+        self.on_save = on_save
+        self.on_cancel = on_cancel
+        self.load_settings()
+        self.init_ui()
+
+    def load_settings(self):
+        with open(self.settings_path, "r", encoding='utf-8') as f:
+            self.settings_data = json.load(f)
+        self.current_colors = list(self.settings_data.get("colors", []))
+        self.current_path = self.settings_data.get("path_bdd", "")
+
+    def init_ui(self):
+        # Apply stylesheet to match the premium dark theme
+        self.setStyleSheet("""
+            QWidget#settingsWidget {
+                background-color: #29272b;
+            }
+            QLabel {
+                font-size: 14px;
+                color: #e0e0e0;
+            }
+            QLabel#settingsTitle {
+                font-size: 20px;
+                font-weight: bold;
+                color: #ffffff;
+            }
+            QLabel#sectionHeader {
+                font-size: 15px;
+                font-weight: bold;
+                color: #b4b4ee;
+            }
+            QPushButton {
+                background-color: #3b3b54;
+                border: 1px solid #59596B;
+                border-radius: 4px;
+                padding: 6px 12px;
+                color: white;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4c4c6d;
+                border-color: #727293;
+            }
+            QPushButton:pressed {
+                background-color: #29272b;
+            }
+            QPushButton#saveBtn {
+                background-color: #4a8a4a;
+                border-color: #5fa85f;
+            }
+            QPushButton#saveBtn:hover {
+                background-color: #58a258;
+            }
+            QPushButton#cancelBtn {
+                background-color: #a33838;
+                border-color: #c74848;
+            }
+            QPushButton#cancelBtn:hover {
+                background-color: #bd4242;
+            }
+            QScrollArea {
+                border: 1px solid #3b3b54;
+                background-color: #211f22;
+                border-radius: 4px;
+            }
+        """)
+
+        self.setObjectName("settingsWidget")
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setSpacing(15)
+
+        # Title
+        title_label = QLabel("Paramètres de l'Application")
+        title_label.setObjectName("settingsTitle")
+        main_layout.addWidget(title_label)
+
+        # Separator line
+        sep = QWidget()
+        sep.setFixedHeight(2)
+        sep.setStyleSheet("background-color: #3b3b54;")
+        main_layout.addWidget(sep)
+
+        # 1. BDD Path Section
+        path_header = QLabel("Base de Données")
+        path_header.setObjectName("sectionHeader")
+        main_layout.addWidget(path_header)
+
+        path_label = QLabel("Chemin du fichier JSON de la base de données :")
+        main_layout.addWidget(path_label)
+
+        path_row = QHBoxLayout()
+        self.path_input = QLineEdit(self.current_path)
+        self.path_input.setPlaceholderText("Sélectionnez le fichier JSON de la BDD...")
+        browse_btn = QPushButton("Parcourir...")
+        browse_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        browse_btn.clicked.connect(self.browse_db_path)
+        path_row.addWidget(self.path_input)
+        path_row.addWidget(browse_btn)
+        main_layout.addLayout(path_row)
+
+        # Spacer
+        main_layout.addSpacing(10)
+
+        # 2. Colors Section
+        colors_header = QLabel("Couleurs des Disques")
+        colors_header.setObjectName("sectionHeader")
+        main_layout.addWidget(colors_header)
+
+        colors_desc = QLabel("Liste des couleurs utilisées pour colorer les bordures des disques :")
+        main_layout.addWidget(colors_desc)
+
+        # Colors Scroll Area
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_widget = QWidget()
+        self.scroll_widget.setStyleSheet("background-color: #211f22;")
+        self.colors_layout = QVBoxLayout(self.scroll_widget)
+        self.colors_layout.setContentsMargins(10, 10, 10, 10)
+        self.colors_layout.setSpacing(5)
+        
+        self.scroll_area.setWidget(self.scroll_widget)
+        main_layout.addWidget(self.scroll_area, 1) # Set stretch factor to let colors list expand
+
+        # Add Color Button
+        add_color_btn = QPushButton("Ajouter une couleur")
+        add_color_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_color_btn.clicked.connect(self.add_color)
+        main_layout.addWidget(add_color_btn)
+
+        # Spacer
+        main_layout.addSpacing(10)
+
+        # 3. Save / Cancel Buttons Row
+        actions_row = QHBoxLayout()
+        actions_row.addStretch()
+        
+        self.cancel_btn = QPushButton("Annuler")
+        self.cancel_btn.setObjectName("cancelBtn")
+        self.cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.cancel_btn.clicked.connect(self.on_cancel)
+        
+        self.save_btn = QPushButton("Enregistrer")
+        self.save_btn.setObjectName("saveBtn")
+        self.save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.save_btn.clicked.connect(self.save_settings)
+        
+        actions_row.addWidget(self.cancel_btn)
+        actions_row.addWidget(self.save_btn)
+        main_layout.addLayout(actions_row)
+
+        # Initial colors list render
+        self.rebuild_colors_list()
+
+    def rebuild_colors_list(self):
+        # Clear existing items
+        while self.colors_layout.count():
+            item = self.colors_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        # Add current colors
+        for index, color in enumerate(self.current_colors):
+            color_item = QWidget()
+            color_item.setObjectName("colorItem")
+            color_item.setStyleSheet("""
+                QWidget#colorItem {
+                    background-color: #2e2b2f;
+                    border-radius: 4px;
+                }
+            """)
+            h_layout = QHBoxLayout(color_item)
+            h_layout.setContentsMargins(8, 4, 8, 4)
+            h_layout.setSpacing(10)
+            
+            # Color indicator preview
+            circle = QLabel()
+            circle.setFixedSize(20, 20)
+            circle.setStyleSheet(f"""
+                background-color: {color};
+                border-radius: 10px;
+                border: 1px solid #555555;
+            """)
+            
+            # Color label name
+            name_label = QLabel(color)
+            name_label.setStyleSheet("font-family: Consolas; font-size: 13px; color: #ffffff;")
+            
+            # Delete button
+            del_btn = QPushButton("Supprimer")
+            del_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            del_btn.setFixedSize(90, 26)
+            del_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #594343;
+                    border: 1px solid #7a5c5c;
+                    font-size: 12px;
+                    padding: 2px;
+                }
+                QPushButton:hover {
+                    background-color: #705252;
+                }
+            """)
+            del_btn.clicked.connect(lambda checked, idx=index: self.delete_color(idx))
+            
+            h_layout.addWidget(circle)
+            h_layout.addWidget(name_label)
+            h_layout.addStretch()
+            h_layout.addWidget(del_btn)
+            
+            self.colors_layout.addWidget(color_item)
+            
+        self.colors_layout.addStretch()
+
+    def delete_color(self, idx):
+        if 0 <= idx < len(self.current_colors):
+            self.current_colors.pop(idx)
+            self.rebuild_colors_list()
+
+    def add_color(self):
+        color = QColorDialog.getColor(parent=self)
+        if color.isValid():
+            self.current_colors.append(color.name())
+            self.rebuild_colors_list()
+
+    def browse_db_path(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Choisir la base de données",
+            os.path.dirname(self.path_input.text()) if self.path_input.text() else "",
+            "Fichiers JSON (*.json)"
+        )
+        if file_path:
+            self.path_input.setText(file_path)
+
+    def save_settings(self):
+        self.settings_data["path_bdd"] = self.path_input.text()
+        self.settings_data["colors"] = self.current_colors
+        with open(self.settings_path, "w", encoding='utf-8') as f:
+            json.dump(self.settings_data, f, indent=2, ensure_ascii=False)
+        self.on_save()
