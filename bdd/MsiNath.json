@@ -1,0 +1,150 @@
+{
+    "Main CP5P 1To": {
+        "Steam": [
+            {
+                "nom": "Call of Duty: Modern Warfare 2 (2009)",
+                "taille": 11.3,
+                "année": 0
+            },
+            {
+                "nom": "Call of Duty: Modern Warfare 2 (2009) - Multiplayer",
+                "taille": 0.0,
+                "année": 0
+            },
+            {
+                "nom": "RetroArch",
+                "taille": 0.8,
+                "année": 0
+            },
+            {
+                "nom": "Spirit of the North 2",
+                "taille": 21.3,
+                "année": 0
+            },
+            {
+                "nom": "Subnautica 2",
+                "taille": 14.6,
+                "année": 0
+            },
+            {
+                "nom": "Steamworks Common Redistributables",
+                "taille": 0.4,
+                "année": 0
+            },
+            {
+                "nom": "Portal 2",
+                "taille": 12.6,
+                "année": 0
+            },
+            {
+                "nom": "Among Us",
+                "taille": 0.9,
+                "année": 0
+            }
+        ],
+        "Epic Games": [
+            {
+                "nom": "Rocket League®",
+                "taille": 39.5,
+                "année": 0
+            }
+        ],
+        "Microsoft Store": [
+            {
+                "nom": "Minecraft for Windows",
+                "taille": 2.0,
+                "année": 0
+            },
+            {
+                "nom": "Minecraft Launcher",
+                "taille": 0.0,
+                "année": 0
+            },
+            {
+                "nom": "Minecraft- Java Edition",
+                "taille": 0.1,
+                "année": 0
+            }
+        ]
+    },
+    "SeaG HDD 1To": {
+        "Steam": [
+            {
+                "nom": "Ratchet & Clank: Rift Apart",
+                "taille": 39.1,
+                "année": 0
+            },
+            {
+                "nom": "Spyro™ Reignited Trilogy",
+                "taille": 38.7,
+                "année": 0
+            }
+        ]
+    },
+    "Sam SSD 1To": {
+        "Steam": [
+            {
+                "nom": "Ready or Not",
+                "taille": 48.3,
+                "année": 0
+            },
+            {
+                "nom": "Spirit of the North",
+                "taille": 3.6,
+                "année": 0
+            },
+            {
+                "nom": "Call of Duty®: Modern Warfare®",
+                "taille": 160.1,
+                "année": 0
+            },
+            {
+                "nom": "Portal with RTX",
+                "taille": 17.3,
+                "année": 0
+            },
+            {
+                "nom": "Assetto Corsa",
+                "taille": 41.9,
+                "année": 0
+            },
+            {
+                "nom": "Battlefield™ 6",
+                "taille": 134.1,
+                "année": 0
+            },
+            {
+                "nom": "Portal",
+                "taille": 4.0,
+                "année": 0
+            },
+            {
+                "nom": "Call of Duty®: Modern Warfare® 3 (2011)",
+                "taille": 0.0,
+                "année": 0
+            },
+            {
+                "nom": "Call of Duty®: Modern Warfare® 3 (2011) - Multiplayer",
+                "taille": 14.3,
+                "année": 0
+            },
+            {
+                "nom": "Overcooked! 2",
+                "taille": 7.9,
+                "année": 0
+            },
+            {
+                "nom": "Counter-Strike 2",
+                "taille": 63.8,
+                "année": 0
+            }
+        ],
+        "Rockstar": [
+            {
+                "nom": "Grand Theft Auto V Enhanced",
+                "taille": 95.1,
+                "année": 0
+            }
+        ]
+    }
+}

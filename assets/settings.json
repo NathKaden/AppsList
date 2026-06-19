@@ -1,5 +1,5 @@
 {
-  "path_bdd": "C:\\Users\\boula\\Desktop\\main\\IDE\\AppsList\\AppsList\\bdd\\a.json",
+  "path_bdd": "bdd/MsiNath.json",
   "colors": [
     "#ED7F10",
     "#BDFF00",
@@ -37,7 +37,7 @@
       "image": "microsoft_store.png"
     }
   },
-  "disk_axis": "horizontal",
+  "disk_axis": "vertical",
   "disk_images": {
     "New Disk Name": "hdd.png",
     "Main CP5P 1To": "ssd.png"

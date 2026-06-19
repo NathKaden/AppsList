@@ -38,6 +38,12 @@ class TestSettingsWidget(unittest.TestCase):
                 os.remove(self.test_settings_path)
             except OSError:
                 pass
+        for path in ["bdd/NewBDD.json", "bdd/BDDTest.json"]:
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
 
     def on_save(self):
         self.save_called = True
@@ -194,6 +200,12 @@ class TestMainWindowOpenBdd(unittest.TestCase):
         if os.path.exists(self.backup_settings_path):
             import shutil
             shutil.move(self.backup_settings_path, self.settings_path)
+        for path in ["bdd/BDD_new_test.json", "bdd/BDDTest.json"]:
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
 
     @patch('PyQt6.QtWidgets.QFileDialog.getOpenFileName')
     def test_open_bdd_file(self, mock_get_open):
