@@ -89,17 +89,14 @@ Installez les dépendances nécessaires (dont `pyinstaller` pour la compilation 
 pip install -r requirements.txt
 ```
 
-### 2. Compilation
-Lancez la compilation avec la commande suivante :
+### 2. Compilation (Méthode automatique avec Make)
+Vous pouvez générer automatiquement l'exécutable et le packager dans une archive `.zip` prête à distribuer en exécutant simplement :
 ```bash
-pyinstaller --onefile --noconsole --icon=assets/medias/icon.jpg main.py
+make release
 ```
-- `--onefile` : Regroupe l'application entière dans un fichier unique `main.exe` dans le dossier `dist/`.
-- `--noconsole` : Masque la console d'arrière-plan (Windows CLI) au lancement.
-- `--icon` : Utilise l'icône de l'application (convertie automatiquement de `.jpg` à `.ico` via Pillow).
+Cette commande va :
+1. Compiler l'application sous forme de fichier autonome `AppsList.exe` dans le dossier `dist/`.
+2. Créer une archive `AppsList-Release.zip` à la racine contenant `AppsList.exe` accompagné de ses dossiers `assets/` et `bdd/` nécessaires à son bon fonctionnement.
+3. Nettoyer les fichiers de construction temporaires.
 
-### 3. Fonctionnement
-Le fichier `main.exe` est généré dans le dossier **`dist/`**.
-Pour que l'exécutable fonctionne correctement :
-1. Déplacez ou copiez `main.exe` en dehors du dossier `dist/` à la racine de votre projet (là où se trouvent les dossiers `assets` et `bdd`).
-2. Ou bien copiez simplement les dossiers **`assets`** et **`bdd`** dans le même répertoire que votre `main.exe`.
+*(Alternative manuelle : `pyinstaller --onefile --noconsole --icon=assets/medias/icon.jpg --name=AppsList main.py`, puis copier manuellement les dossiers `assets` et `bdd` dans le même dossier que l'exécutable).*
