@@ -79,3 +79,27 @@ La fonction `actualiser()` : actualisera le nombre d'applications, elle sera app
 - Fonction qui permet de prendre une application en cours et de l'ajouter à la liste
 - Un thème clair
 
+## 📦 Compilation en exécutable (.exe)
+
+Pour distribuer ou lancer l'application sous forme de fichier exécutable autonome `.exe` sur Windows, suivez ces étapes :
+
+### 1. Préparation de l'environnement
+Installez les dépendances nécessaires (dont `pyinstaller` pour la compilation et `Pillow` pour la conversion d'icône) :
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Compilation
+Lancez la compilation avec la commande suivante :
+```bash
+pyinstaller --onefile --noconsole --icon=assets/medias/icon.jpg main.py
+```
+- `--onefile` : Regroupe l'application entière dans un fichier unique `main.exe` dans le dossier `dist/`.
+- `--noconsole` : Masque la console d'arrière-plan (Windows CLI) au lancement.
+- `--icon` : Utilise l'icône de l'application (convertie automatiquement de `.jpg` à `.ico` via Pillow).
+
+### 3. Fonctionnement
+Le fichier `main.exe` est généré dans le dossier **`dist/`**.
+Pour que l'exécutable fonctionne correctement :
+1. Déplacez ou copiez `main.exe` en dehors du dossier `dist/` à la racine de votre projet (là où se trouvent les dossiers `assets` et `bdd`).
+2. Ou bien copiez simplement les dossiers **`assets`** et **`bdd`** dans le même répertoire que votre `main.exe`.
