@@ -464,3 +464,241 @@ class TestMainWindowAppDetails(unittest.TestCase):
         self.assertIsNotNone(epic_launcher)
         self.assertEqual(epic_launcher.apps[0].name, "Mock Epic Game")
         self.assertEqual(epic_launcher.apps[0].size, 20.0)
+
+    def test_game_with_small_size_hidden(self):
+        from ui.components import AppLabel
+        from models.app import App
+        launcher = self.win.db.disks["SSD Main"].launchers["Steam"]
+        launcher.apps = [
+            App("Big Game", size=0.1, year=2020),
+            App("Small Game", size=0.05, year=2020)
+        ]
+        self.win.db.save()
+        self.win.refresh()
+        
+        app_labels = self.win.canvas_container.findChildren(AppLabel)
+        names = [label.app.name for label in app_labels]
+        self.assertIn("Big Game", names)
+        self.assertNotIn("Small Game", names)
+
+    def test_game_with_no_year_empty_spinbox(self):
+        from models.app import App
+        launcher = self.win.db.disks["SSD Main"].launchers["Steam"]
+        app_zero = App("No Year Game", size=1.0, year=0)
+        app_year = App("With Year Game", size=1.0, year=2022)
+        launcher.apps = [app_zero, app_year]
+        self.win.db.save()
+        self.win.refresh()
+        
+        self.win.show_app_details(app_zero, launcher)
+        self.assertEqual(self.win.side_year_input.value(), 0)
+        self.assertEqual(self.win.side_year_input.text(), "")
+        
+        self.win.show_app_details(app_year, launcher)
+        self.assertEqual(self.win.side_year_input.value(), 2022)
+        self.assertEqual(self.win.side_year_input.text(), "2022")
+
+    @patch('PyQt6.QtWidgets.QMessageBox.information')
+    def test_disk_details_renaming_and_image(self, mock_info):
+        disk = self.win.db.disks["SSD Main"]
+        self.win.show_disk_details(disk)
+        self.assertFalse(self.win.disk_panel.isHidden())
+        self.assertEqual(self.win.disk_name_input.text(), "SSD Main")
+        
+        # Change disk name and image
+        self.win.disk_name_input.setText("New Disk Name")
+        if self.win.disk_image_combo.count() > 0:
+            self.win.disk_image_combo.setCurrentIndex(0)
+            
+        self.win.save_disk_details()
+        self.assertTrue(self.win.disk_panel.isHidden())
+        
+        self.assertIn("New Disk Name", self.win.db.disks)
+        self.assertNotIn("SSD Main", self.win.db.disks)
+        
+        # Verify it was saved to settings
+        with open(self.win.assetsdir + "settings.json", "r", encoding="utf-8") as f:
+            settings = json.load(f)
+        self.assertIn("New Disk Name", settings.get("disk_images", {}))
+        mock_info.assert_called_once()
+
+    @patch('PyQt6.QtWidgets.QMenu.exec')
+    def test_disk_widget_context_menu_modify(self, mock_exec):
+        from ui.components import DiskWidget
+        from PyQt6.QtCore import QPoint
+        import PyQt6.QtWidgets
+        
+        disk_widget = self.win.canvas_container.findChild(DiskWidget)
+        self.assertIsNotNone(disk_widget)
+        
+        actions = []
+        original_add_action = PyQt6.QtWidgets.QMenu.addAction
+        
+        def mock_add_action(menu_self, text):
+            act = original_add_action(menu_self, text)
+            actions.append(act)
+            return act
+            
+        with patch('PyQt6.QtWidgets.QMenu.addAction', mock_add_action):
+            def exec_side_effect(*args, **kwargs):
+                return actions[0]  # Modifier action
+            mock_exec.side_effect = exec_side_effect
+            
+            from PyQt6.QtCore import QPointF
+            local_pos = disk_widget.disk_name_label.mapTo(self.win.canvas_container, QPoint(disk_widget.disk_name_label.width() // 2, disk_widget.disk_name_label.height() // 2))
+            scene_pos = self.win.proxy.mapToScene(QPointF(local_pos))
+            viewport_pos = self.win.canvas_view.mapFromScene(scene_pos)
+            
+            self.win.canvas_view.afficher_menu_contextuel(viewport_pos)
+            
+            self.assertFalse(self.win.disk_panel.isHidden())
+            self.assertEqual(self.win.selected_disk.name, disk_widget.disk.name)
+
+    @patch('PyQt6.QtWidgets.QMenu.exec')
+    def test_disk_widget_context_menu_modify_outside_name(self, mock_exec):
+        from ui.components import DiskWidget
+        from PyQt6.QtCore import QPoint
+        import PyQt6.QtWidgets
+        
+        disk_widget = self.win.canvas_container.findChild(DiskWidget)
+        self.assertIsNotNone(disk_widget)
+        
+        self.win.disk_panel.hide()
+        
+        # Click on bottom right of the disk widget, far from header
+        from PyQt6.QtCore import QPointF
+        local_pos = disk_widget.mapTo(self.win.canvas_container, QPoint(disk_widget.width() - 5, disk_widget.height() - 5))
+        scene_pos = self.win.proxy.mapToScene(QPointF(local_pos))
+        viewport_pos = self.win.canvas_view.mapFromScene(scene_pos)
+        
+        self.win.canvas_view.afficher_menu_contextuel(viewport_pos)
+        
+        # Verify it did not trigger disk panel showing
+        self.assertTrue(self.win.disk_panel.isHidden())
+        mock_exec.assert_not_called()
+
+    @patch('PyQt6.QtWidgets.QMessageBox.information')
+    @patch('ctypes.windll.kernel32.GetVolumeInformationW')
+    @patch('os.path.isdir')
+    @patch('os.path.exists')
+    @patch('os.listdir')
+    @patch('os.walk')
+    @patch('os.path.getsize')
+    @patch('winreg.OpenKey')
+    @patch('winreg.QueryInfoKey')
+    @patch('winreg.EnumKey')
+    @patch('winreg.QueryValueEx')
+    def test_remplir_automatiquement_platforms(self, mock_query_value_ex, mock_enum_key, mock_query_info_key, mock_open_key,
+                                               mock_getsize, mock_walk, mock_listdir, mock_exists, mock_isdir, mock_volume, mock_info):
+        from unittest.mock import MagicMock, mock_open
+        
+        # 1. Setup Volume mock
+        def side_effect_volume(drive, buf, *args):
+            buf.value = "SSD Main"
+            return True
+        mock_volume.side_effect = side_effect_volume
+        
+        # 2. Setup path checks
+        def side_effect_isdir(path):
+            p_lower = path.lower()
+            if "steam" in p_lower or "manifests" in p_lower:
+                return False
+            return True
+        mock_isdir.side_effect = side_effect_isdir
+        
+        def side_effect_exists(path):
+            p_lower = path.lower()
+            if "steam" in p_lower or "manifests" in p_lower:
+                return False
+            return True
+        mock_exists.side_effect = side_effect_exists
+        
+        # 3. Setup os.listdir
+        def side_effect_listdir(path):
+            if "XboxGames" in path:
+                return ["Minecraft for Windows"]
+            return []
+        mock_listdir.side_effect = side_effect_listdir
+        
+        # 4. Setup os.walk & os.path.getsize
+        mock_walk.side_effect = lambda path: [ (path, [], ["file.bin"]) ]
+        mock_getsize.side_effect = lambda path: 5 * 1024**3 # 5 GB
+        
+        # 5. Setup winreg mocks
+        def mock_open_key_side_effect(key_or_hive, subkey_name=None, *args):
+            m = MagicMock()
+            m.__enter__.return_value = m
+            if subkey_name == "Call of Duty Black Ops Cold War":
+                m.name = "CODBnet"
+            elif subkey_name == "{5EFC6C07-6B87-43FC-9524-F9E967241741}":
+                m.name = "GTARockstar"
+            else:
+                m.name = "UninstallRoot"
+            return m
+        mock_open_key.side_effect = mock_open_key_side_effect
+        
+        def mock_query_info_key_side_effect(key):
+            if key.name == "UninstallRoot":
+                return (2, 0, 0)
+            return (0, 0, 0)
+        mock_query_info_key.side_effect = mock_query_info_key_side_effect
+        
+        def mock_enum_key_side_effect(key, index):
+            if key.name == "UninstallRoot":
+                if index == 0:
+                    return "Call of Duty Black Ops Cold War"
+                elif index == 1:
+                    return "{5EFC6C07-6B87-43FC-9524-F9E967241741}"
+            return ""
+        mock_enum_key.side_effect = mock_enum_key_side_effect
+        
+        def mock_query_value_ex_side_effect(key, name):
+            if key.name == "CODBnet":
+                if name == "DisplayName":
+                    return ("Call of Duty Black Ops Cold War", 1)
+                elif name == "InstallLocation":
+                    return ("D:\\Games\\Call of Duty", 1)
+                elif name == "UninstallString":
+                    return ("Blizzard Uninstaller.exe", 1)
+                elif name == "Publisher":
+                    return ("Blizzard Entertainment", 1)
+            elif key.name == "GTARockstar":
+                if name == "DisplayName":
+                    return ("Grand Theft Auto V Enhanced", 1)
+                elif name == "InstallLocation":
+                    return ("D:\\Games\\GTA V", 1)
+                elif name == "UninstallString":
+                    return ("uninstall.exe -enableFullMode -uninstall=gta5_gen9", 1)
+                elif name == "Publisher":
+                    return ("Rockstar Games", 1)
+            raise FileNotFoundError()
+        mock_query_value_ex.side_effect = mock_query_value_ex_side_effect
+        
+        # Clear SSD Main launchers first
+        self.win.db.disks["SSD Main"].launchers = {}
+        self.win.db.save()
+        
+        # Call remplir_automatiquement
+        self.win.remplir_automatiquement()
+            
+        mock_info.assert_called_once()
+        
+        # Verify Battle.net was added
+        bnet_launcher = self.win.db.disks["SSD Main"].launchers.get("Battle.net")
+        self.assertIsNotNone(bnet_launcher)
+        self.assertEqual(bnet_launcher.apps[0].name, "Call of Duty Black Ops Cold War")
+        self.assertEqual(bnet_launcher.apps[0].size, 5.0)
+        
+        # Verify Rockstar was added
+        rockstar_launcher = self.win.db.disks["SSD Main"].launchers.get("Rockstar")
+        self.assertIsNotNone(rockstar_launcher)
+        self.assertEqual(rockstar_launcher.apps[0].name, "Grand Theft Auto V Enhanced")
+        self.assertEqual(rockstar_launcher.apps[0].size, 5.0)
+        
+        # Verify Microsoft Store was added
+        ms_launcher = self.win.db.disks["SSD Main"].launchers.get("Microsoft Store")
+        self.assertIsNotNone(ms_launcher)
+        self.assertEqual(ms_launcher.apps[0].name, "Minecraft for Windows")
+        self.assertEqual(ms_launcher.apps[0].size, 5.0)
+
+

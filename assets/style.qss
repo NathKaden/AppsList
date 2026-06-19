@@ -67,7 +67,7 @@ QStatusBar QLabel {
 
 
 #centralWidget {
-    background-color: #29272b;
+    background-color: #211f22;
     margin: 0;
 }
 #disque {

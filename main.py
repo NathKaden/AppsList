@@ -3,14 +3,28 @@ import os
 import json
 import webbrowser
 
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton, QGraphicsScene, QFileDialog, QMessageBox, QSpinBox, QDoubleSpinBox, QLineEdit
-from PyQt6.QtCore import pyqtSignal, QEvent, Qt, QSize
+from PyQt6.QtGui import QIcon, QPixmap, QPainter, QBrush, QColor, QPen, QPainterPath
+from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QApplication, QWidget, QMainWindow, QStatusBar, QLabel, QMenuBar, QStackedWidget, QPushButton, QGraphicsScene, QFileDialog, QMessageBox, QSpinBox, QDoubleSpinBox, QLineEdit, QComboBox, QLayout
+from PyQt6.QtCore import pyqtSignal, QEvent, Qt, QSize, QSizeF
 
 # Import des fonctions nécessaires, des modèles et des composants UI
 from functions.functions import getDisques, getNbApps, get_color
 from models import Database
 from ui.components import DiskWidget, TerminalWidget, build_menu_bar, SettingsWidget, create_gear_icon, create_home_icon, CanvasView, NewBddInputWidget
+
+class YearSpinBox(QSpinBox):
+    def textFromValue(self, val):
+        if val == 0:
+            return ""
+        return super().textFromValue(val)
+
+    def valueFromText(self, text):
+        if not text.strip():
+            return 0
+        try:
+            return int(text)
+        except ValueError:
+            return 0
 
 class MainWindow(QMainWindow):
     changedToDark = pyqtSignal(bool)
@@ -70,6 +84,8 @@ class MainWindow(QMainWindow):
             on_refresh=self.refresh,
             on_search=self.rechercher_jeu,
             on_autofill=self.remplir_automatiquement,
+            on_add=self.ouvrir_panneau_ajouter,
+            on_axis=self.changer_axe,
             settings_button=self.settings_button
         )
         self.setMenuBar(menuBar)
@@ -91,7 +107,7 @@ class MainWindow(QMainWindow):
         
         self.side_panel.setStyleSheet("""
             QWidget#sidePanel {
-                background-color: #211f22;
+                background-color: #29272b;
                 border-left: 1px solid #3b3b54;
             }
             QLabel {
@@ -152,7 +168,7 @@ class MainWindow(QMainWindow):
         side_layout.addWidget(sep)
         
         self.side_name_input = QLineEdit()
-        self.side_year_input = QSpinBox()
+        self.side_year_input = YearSpinBox()
         self.side_year_input.setRange(0, 2100)
         self.side_year_input.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
         
@@ -192,6 +208,241 @@ class MainWindow(QMainWindow):
         self.side_close_btn.clicked.connect(self.side_panel.hide)
         side_layout.addWidget(self.side_close_btn)
 
+        # Create add panel widget
+        self.add_panel = QWidget()
+        self.add_panel.setObjectName("addPanel")
+        self.add_panel.setFixedWidth(250)
+        self.add_panel.hide()
+        
+        self.add_panel.setStyleSheet("""
+            QWidget#addPanel {
+                background-color: #29272b;
+                border-left: 1px solid #3b3b54;
+            }
+            QLabel {
+                font-size: 13px;
+                color: #e0e0e0;
+            }
+            QLabel#addTitle {
+                font-size: 15px;
+                font-weight: bold;
+                color: #ffffff;
+            }
+            QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+                background-color: #302E33;
+                color: white;
+                border: 1px solid #555555;
+                padding: 4px;
+                border-radius: 3px;
+            }
+            QPushButton {
+                background-color: #3b3b54;
+                border: 1px solid #59596B;
+                border-radius: 4px;
+                padding: 6px 12px;
+                color: white;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4c4c6d;
+            }
+            QPushButton#addSubmitBtn {
+                background-color: #4a8a4a;
+                border-color: #5fa85f;
+            }
+            QPushButton#addSubmitBtn:hover {
+                background-color: #58a258;
+            }
+        """)
+
+        add_layout = QVBoxLayout(self.add_panel)
+        add_layout.setContentsMargins(15, 15, 15, 15)
+        add_layout.setSpacing(10)
+
+        add_title_label = QLabel("Ajouter un élément")
+        add_title_label.setObjectName("addTitle")
+        add_layout.addWidget(add_title_label)
+
+        add_sep = QWidget()
+        add_sep.setFixedHeight(1)
+        add_sep.setStyleSheet("background-color: #3b3b54;")
+        add_layout.addWidget(add_sep)
+
+        add_layout.addWidget(QLabel("Type :"))
+        self.add_type_combo = QComboBox()
+        self.add_type_combo.addItems(["Jeu", "Disque", "Launcher"])
+        self.add_type_combo.currentIndexChanged.connect(self.on_add_type_changed)
+        add_layout.addWidget(self.add_type_combo)
+        add_layout.addSpacing(6)
+
+        # Form stack widget
+        self.add_form_stack = QStackedWidget()
+        add_layout.addWidget(self.add_form_stack)
+
+        # --- Form 0: Jeu ---
+        self.form_game_widget = QWidget()
+        fg_layout = QVBoxLayout(self.form_game_widget)
+        fg_layout.setContentsMargins(0, 0, 0, 0)
+        fg_layout.setSpacing(8)
+
+        fg_layout.addWidget(QLabel("Nom du jeu :"))
+        self.add_game_name_input = QLineEdit()
+        fg_layout.addWidget(self.add_game_name_input)
+
+        fg_layout.addWidget(QLabel("Disque :"))
+        self.add_game_disk_combo = QComboBox()
+        self.add_game_disk_combo.currentIndexChanged.connect(self.on_add_game_disk_changed)
+        fg_layout.addWidget(self.add_game_disk_combo)
+
+        fg_layout.addWidget(QLabel("Launcher :"))
+        self.add_game_launcher_combo = QComboBox()
+        self.add_game_launcher_combo.setEditable(True)
+        fg_layout.addWidget(self.add_game_launcher_combo)
+
+        fg_layout.addWidget(QLabel("Année :"))
+        self.add_game_year_input = YearSpinBox()
+        self.add_game_year_input.setRange(0, 2100)
+        self.add_game_year_input.setButtonSymbols(QSpinBox.ButtonSymbols.NoButtons)
+        fg_layout.addWidget(self.add_game_year_input)
+
+        fg_layout.addWidget(QLabel("Taille :"))
+        self.add_game_size_input = QDoubleSpinBox()
+        self.add_game_size_input.setRange(0.0, 10000.0)
+        self.add_game_size_input.setDecimals(1)
+        self.add_game_size_input.setSuffix(" Go")
+        self.add_game_size_input.setButtonSymbols(QDoubleSpinBox.ButtonSymbols.NoButtons)
+        fg_layout.addWidget(self.add_game_size_input)
+        fg_layout.addStretch(1)
+
+        self.add_form_stack.addWidget(self.form_game_widget)
+
+        # --- Form 1: Disque ---
+        self.form_disk_widget = QWidget()
+        fd_layout = QVBoxLayout(self.form_disk_widget)
+        fd_layout.setContentsMargins(0, 0, 0, 0)
+        fd_layout.setSpacing(8)
+
+        fd_layout.addWidget(QLabel("Nom du disque :"))
+        self.add_disk_name_input = QLineEdit()
+        fd_layout.addWidget(self.add_disk_name_input)
+        fd_layout.addStretch(1)
+
+        self.add_form_stack.addWidget(self.form_disk_widget)
+
+        # --- Form 2: Launcher ---
+        self.form_launcher_widget = QWidget()
+        fl_layout = QVBoxLayout(self.form_launcher_widget)
+        fl_layout.setContentsMargins(0, 0, 0, 0)
+        fl_layout.setSpacing(8)
+
+        fl_layout.addWidget(QLabel("Disque parent :"))
+        self.add_launcher_disk_combo = QComboBox()
+        fl_layout.addWidget(self.add_launcher_disk_combo)
+
+        fl_layout.addWidget(QLabel("Nom du launcher :"))
+        self.add_launcher_name_combo = QComboBox()
+        self.add_launcher_name_combo.setEditable(True)
+        fl_layout.addWidget(self.add_launcher_name_combo)
+        fl_layout.addStretch(1)
+
+        self.add_form_stack.addWidget(self.form_launcher_widget)
+
+        # Bottom stretch and buttons
+        add_layout.addStretch(1)
+
+        self.add_submit_btn = QPushButton("Ajouter")
+        self.add_submit_btn.setObjectName("addSubmitBtn")
+        self.add_submit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.add_submit_btn.clicked.connect(self.submit_addition)
+        add_layout.addWidget(self.add_submit_btn)
+
+        self.add_close_btn = QPushButton("Fermer")
+        self.add_close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.add_close_btn.clicked.connect(self.add_panel.hide)
+        add_layout.addWidget(self.add_close_btn)
+
+        # Create disk edit panel widget
+        self.disk_panel = QWidget()
+        self.disk_panel.setObjectName("diskPanel")
+        self.disk_panel.setFixedWidth(250)
+        self.disk_panel.hide()
+        
+        self.disk_panel.setStyleSheet("""
+            QWidget#diskPanel {
+                background-color: #29272b;
+                border-left: 1px solid #3b3b54;
+            }
+            QLabel {
+                font-size: 13px;
+                color: #e0e0e0;
+            }
+            QLabel#diskTitle {
+                font-size: 15px;
+                font-weight: bold;
+                color: #ffffff;
+            }
+            QLineEdit, QComboBox {
+                background-color: #302E33;
+                color: white;
+                border: 1px solid #555555;
+                padding: 4px;
+                border-radius: 3px;
+            }
+            QPushButton {
+                background-color: #3b3b54;
+                border: 1px solid #59596B;
+                border-radius: 4px;
+                padding: 6px 12px;
+                color: white;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #4c4c6d;
+            }
+            QPushButton#diskSaveBtn {
+                background-color: #4a8a4a;
+                border-color: #5fa85f;
+            }
+            QPushButton#diskSaveBtn:hover {
+                background-color: #58a258;
+            }
+        """)
+
+        disk_layout = QVBoxLayout(self.disk_panel)
+        disk_layout.setContentsMargins(15, 15, 15, 15)
+        disk_layout.setSpacing(10)
+
+        disk_title_label = QLabel("Modifier le Disque")
+        disk_title_label.setObjectName("diskTitle")
+        disk_layout.addWidget(disk_title_label)
+
+        disk_sep = QWidget()
+        disk_sep.setFixedHeight(1)
+        disk_sep.setStyleSheet("background-color: #3b3b54;")
+        disk_layout.addWidget(disk_sep)
+
+        disk_layout.addWidget(QLabel("Nom du disque :"))
+        self.disk_name_input = QLineEdit()
+        disk_layout.addWidget(self.disk_name_input)
+        disk_layout.addSpacing(6)
+
+        disk_layout.addWidget(QLabel("Photo du disque :"))
+        self.disk_image_combo = QComboBox()
+        disk_layout.addWidget(self.disk_image_combo)
+        
+        disk_layout.addStretch(1)
+
+        self.disk_save_btn = QPushButton("Enregistrer")
+        self.disk_save_btn.setObjectName("diskSaveBtn")
+        self.disk_save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.disk_save_btn.clicked.connect(self.save_disk_details)
+        disk_layout.addWidget(self.disk_save_btn)
+
+        self.disk_close_btn = QPushButton("Fermer")
+        self.disk_close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.disk_close_btn.clicked.connect(self.disk_panel.hide)
+        disk_layout.addWidget(self.disk_close_btn)
+
     def __applyBDD(self):
         # Barre de statut
         statusbar = QStatusBar()
@@ -218,9 +469,14 @@ class MainWindow(QMainWindow):
         self.canvas_container.setObjectName("canvasContainer")
         self.canvas_container.setStyleSheet("background-color: transparent;")
         
-        central_layout = QVBoxLayout(self.canvas_container)
+        axis = self.settings.get("disk_axis", "vertical")
+        if axis == "horizontal":
+            central_layout = QHBoxLayout(self.canvas_container)
+        else:
+            central_layout = QVBoxLayout(self.canvas_container)
         central_layout.setContentsMargins(10, 10, 10, 10)
         central_layout.setSpacing(15)
+        central_layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         for index, disk in enumerate(self.db.disks.values()):
             disk_widget = DiskWidget(
@@ -237,6 +493,27 @@ class MainWindow(QMainWindow):
 
         # Initialize QGraphicsScene and add canvas_container to it
         self.scene = QGraphicsScene(self)
+        
+        # Create a premium subtle blueprint grid texture for the background
+        grid_pixmap = QPixmap(50, 50)
+        grid_pixmap.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(grid_pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Draw grid lines
+        pen = QPen(QColor(255, 255, 255, 6)) # 2.4% opacity line
+        pen.setWidth(1)
+        painter.setPen(pen)
+        painter.drawLine(0, 25, 50, 25)
+        painter.drawLine(25, 0, 25, 50)
+        
+        # Draw dot at center intersection
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(255, 255, 255, 22)) # 8.6% opacity dot
+        painter.drawEllipse(23, 23, 4, 4)
+        
+        painter.end()
+        self.scene.setBackgroundBrush(QBrush(grid_pixmap))
         self.proxy = self.scene.addWidget(self.canvas_container)
 
         # Initialize zoomable & pannable QGraphicsView (CanvasView)
@@ -246,6 +523,7 @@ class MainWindow(QMainWindow):
         self.canvas_container.setMinimumWidth(730)
         self.canvas_container.setMinimumHeight(410)
         self.canvas_container.adjustSize()
+        self.proxy.resize(QSizeF(self.canvas_container.sizeHint()))
         bounds = self.scene.itemsBoundingRect()
         margin_w = bounds.width() * 0.5
         margin_h = bounds.height() * 0.5
@@ -265,9 +543,13 @@ class MainWindow(QMainWindow):
         self.content_layout.setSpacing(0)
         self.content_layout.addWidget(self.canvas_view, 1)
         self.content_layout.addWidget(self.side_panel)
+        self.content_layout.addWidget(self.add_panel)
+        self.content_layout.addWidget(self.disk_panel)
         
         # Hide side panel on new load
         self.side_panel.hide()
+        self.add_panel.hide()
+        self.disk_panel.hide()
 
         # Main page layout wrapping the content layout
         main_page_layout = QVBoxLayout()
@@ -398,6 +680,8 @@ class MainWindow(QMainWindow):
             self.refresh()
 
     def show_app_details(self, app, launcher):
+        self.add_panel.hide()
+        self.disk_panel.hide()
         self.selected_app = app
         self.selected_launcher = launcher
         
@@ -434,6 +718,9 @@ class MainWindow(QMainWindow):
 
     def toggle_settings(self):
         if self.stacked_widget.currentIndex() == 0:
+            self.side_panel.hide()
+            self.add_panel.hide()
+            self.disk_panel.hide()
             self.settings_widget.load_settings()
             self.settings_widget.rebuild_colors_list()
             self.settings_widget.path_input.setText(self.settings_widget.current_path)
@@ -537,37 +824,44 @@ class MainWindow(QMainWindow):
             rc = ctypes.windll.kernel32.GetVolumeInformationW(
                 ctypes.c_wchar_p(drive_letter),
                 volumeNameBuffer,
-                ctypes.sizeof(volumeNameBuffer),
+                len(volumeNameBuffer),
                 ctypes.byref(serial_number),
                 ctypes.byref(max_component_length),
                 ctypes.byref(file_system_flags),
                 fileSystemNameBuffer,
-                ctypes.sizeof(fileSystemNameBuffer)
+                len(fileSystemNameBuffer)
             )
             if rc:
                 return volumeNameBuffer.value
             return ""
 
-        def find_matching_disk(db, path):
+        def find_or_create_disk(db, path):
             drive = os.path.splitdrive(path)[0] + "\\"
-            label = get_volume_label(drive).lower().strip()
+            label = get_volume_label(drive).strip()
             
-            for disk_name in db.disks.keys():
-                if disk_name.lower().strip() == label:
-                    return disk_name
-                    
-            for disk_name in db.disks.keys():
-                if disk_name.lower().strip() in label or label in disk_name.lower().strip():
-                    if label:
+            # 1. Match exactly by volume label (case-insensitive)
+            if label:
+                for disk_name in db.disks.keys():
+                    if disk_name.lower().strip() == label.lower():
                         return disk_name
                         
+            # 2. Match partially by volume label (case-insensitive)
+            if label:
+                for disk_name in db.disks.keys():
+                    if disk_name.lower().strip() in label.lower() or label.lower() in disk_name.lower().strip():
+                        return disk_name
+                        
+            # 3. Match by drive letter (case-insensitive)
             for disk_name in db.disks.keys():
                 if drive.lower() in disk_name.lower():
                     return disk_name
                     
-            if db.disks:
-                return list(db.disks.keys())[0]
-            return None
+            # 4. If not found, create a new Disk with the volume label or drive letter
+            new_disk_name = label if label else f"Disque {drive[0]}"
+            from models.disk import Disk
+            db.disks[new_disk_name] = Disk(new_disk_name)
+            db.save()
+            return new_disk_name
 
         def parse_acf(filepath):
             info = {}
@@ -616,8 +910,24 @@ class MainWindow(QMainWindow):
                             
             return list(paths)
 
+        def get_dir_size_gb(path):
+            total_size = 0
+            try:
+                if os.path.isdir(path):
+                    for dirpath, dirnames, filenames in os.walk(path):
+                        for f in filenames:
+                            fp = os.path.join(dirpath, f)
+                            if not os.path.islink(fp):
+                                total_size += os.path.getsize(fp)
+            except Exception:
+                pass
+            return round(total_size / (1024**3), 1)
+
         steam_added = 0
         epic_added = 0
+        bnet_added = 0
+        rockstar_added = 0
+        msstore_added = 0
 
         # Scan Steam
         library_folders = get_steam_library_folders()
@@ -635,7 +945,7 @@ class MainWindow(QMainWindow):
                             except ValueError:
                                 size_gb = 0.0
                             
-                            disk_name = find_matching_disk(self.db, folder)
+                            disk_name = find_or_create_disk(self.db, folder)
                             if disk_name:
                                 res = self.db.add_app(disk_name, "Steam", game_name, size_gb, year=0)
                                 if "succès" in res:
@@ -664,7 +974,7 @@ class MainWindow(QMainWindow):
                                 except (ValueError, TypeError):
                                     size_gb = 0.0
                                     
-                                disk_name = find_matching_disk(self.db, install_loc)
+                                disk_name = find_or_create_disk(self.db, install_loc)
                                 if disk_name:
                                     res = self.db.add_app(disk_name, "Epic Games", game_name, size_gb, year=0)
                                     if "succès" in res:
@@ -674,16 +984,125 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 print(f"Error scanning Epic manifests: {e}")
 
+        # Scan Battle.net & Rockstar via Registry
+        import winreg
+        registry_paths = [
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+            (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"),
+            (winreg.HKEY_CURRENT_USER, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+        ]
+
+        for hive, reg_path in registry_paths:
+            try:
+                key = winreg.OpenKey(hive, reg_path, 0, winreg.KEY_READ)
+                count = winreg.QueryInfoKey(key)[0]
+                for i in range(count):
+                    try:
+                        subkey_name = winreg.EnumKey(key, i)
+                        with winreg.OpenKey(key, subkey_name) as subkey_obj:
+                            display_name = ""
+                            try:
+                                display_name, _ = winreg.QueryValueEx(subkey_obj, "DisplayName")
+                            except FileNotFoundError:
+                                continue
+                                
+                            install_loc = ""
+                            try:
+                                install_loc, _ = winreg.QueryValueEx(subkey_obj, "InstallLocation")
+                            except FileNotFoundError:
+                                pass
+                                
+                            uninstall_string = ""
+                            try:
+                                uninstall_string, _ = winreg.QueryValueEx(subkey_obj, "UninstallString")
+                            except FileNotFoundError:
+                                pass
+
+                            publisher = ""
+                            try:
+                                publisher, _ = winreg.QueryValueEx(subkey_obj, "Publisher")
+                            except FileNotFoundError:
+                                pass
+
+                            if not display_name or not install_loc or not os.path.isdir(install_loc):
+                                continue
+
+                            dn_lower = display_name.lower()
+                            us_lower = uninstall_string.lower() if uninstall_string else ""
+                            pub_lower = publisher.lower() if publisher else ""
+
+                            # Matchers
+                            is_bnet = "battle.net" in us_lower or "battle.net" in dn_lower or "blizzard" in pub_lower or "blizzard" in dn_lower
+                            is_rockstar = "rockstar" in us_lower or "rockstar" in dn_lower or "rockstar" in pub_lower
+
+                            if is_bnet:
+                                if dn_lower == "battle.net":
+                                    continue
+                                size_gb = get_dir_size_gb(install_loc)
+                                disk_name = find_or_create_disk(self.db, install_loc)
+                                if disk_name:
+                                    res = self.db.add_app(disk_name, "Battle.net", display_name, size_gb, year=0)
+                                    if "succès" in res:
+                                        bnet_added += 1
+                                        
+                            elif is_rockstar:
+                                if any(x in dn_lower for x in ["launcher", "social club", "sdk"]):
+                                    continue
+                                size_gb = get_dir_size_gb(install_loc)
+                                disk_name = find_or_create_disk(self.db, install_loc)
+                                if disk_name:
+                                    res = self.db.add_app(disk_name, "Rockstar", display_name, size_gb, year=0)
+                                    if "succès" in res:
+                                        rockstar_added += 1
+                    except Exception:
+                        pass
+                winreg.CloseKey(key)
+            except Exception:
+                pass
+
+        # Scan Microsoft Store/Xbox Games
+        drives = get_existing_drives()
+        for drive in drives:
+            xbox_path = os.path.join(drive, "XboxGames")
+            if os.path.isdir(xbox_path):
+                try:
+                    for item in os.listdir(xbox_path):
+                        item_path = os.path.join(xbox_path, item)
+                        if os.path.isdir(item_path):
+                            if item.lower() in ["gamesave"]:
+                                continue
+                            size_gb = get_dir_size_gb(item_path)
+                            disk_name = find_or_create_disk(self.db, item_path)
+                            if disk_name:
+                                res = self.db.add_app(disk_name, "Microsoft Store", item, size_gb, year=0)
+                                if "succès" in res:
+                                    msstore_added += 1
+                except Exception as e:
+                    print(f"Error scanning {xbox_path}: {e}")
+
         # Refresh BDD/UI
         self.refresh()
 
         # Alert the user
-        total_added = steam_added + epic_added
+        total_added = steam_added + epic_added + bnet_added + rockstar_added + msstore_added
         if total_added > 0:
+            parts = []
+            if steam_added > 0:
+                parts.append(f"{steam_added} Steam")
+            if epic_added > 0:
+                parts.append(f"{epic_added} Epic Games")
+            if bnet_added > 0:
+                parts.append(f"{bnet_added} Battle.net")
+            if rockstar_added > 0:
+                parts.append(f"{rockstar_added} Rockstar")
+            if msstore_added > 0:
+                parts.append(f"{msstore_added} Microsoft Store")
+                
+            msg = "Les jeux suivants ont été ajoutés avec succès :\n- " + "\n- ".join(parts)
             QMessageBox.information(
                 self,
                 "Remplissage automatique",
-                f"{steam_added} jeux Steam et {epic_added} jeux Epic Games ont été ajoutés avec succès !"
+                msg
             )
         else:
             QMessageBox.information(
@@ -710,6 +1129,216 @@ class MainWindow(QMainWindow):
                 source.setCursor(Qt.CursorShape.ArrowCursor)
                 self.setCursor(Qt.CursorShape.ArrowCursor)
         return super().eventFilter(source, event)
+
+    def on_add_type_changed(self, index):
+        self.add_form_stack.setCurrentIndex(index)
+
+    def on_add_game_disk_changed(self):
+        selected_disk_name = self.add_game_disk_combo.currentText()
+        if not selected_disk_name:
+            return
+        
+        disk = self.db.disks.get(selected_disk_name)
+        if not disk:
+            return
+            
+        disk_launchers = list(disk.launchers.keys())
+        from functions.functions import get_launchers_config
+        settings_launchers = list(get_launchers_config().keys())
+        
+        all_launcher_options = sorted(list(set(disk_launchers + settings_launchers)))
+        
+        curr_launcher = self.add_game_launcher_combo.currentText()
+        self.add_game_launcher_combo.clear()
+        self.add_game_launcher_combo.addItems(all_launcher_options)
+        self.add_game_launcher_combo.setCurrentText(curr_launcher)
+
+    def changer_axe(self):
+        current_axis = self.settings.get("disk_axis", "vertical")
+        new_axis = "horizontal" if current_axis == "vertical" else "vertical"
+        
+        self.settings["disk_axis"] = new_axis
+        
+        path_settings = self.assetsdir + "settings.json"
+        with open(path_settings, "w", encoding='utf-8') as f:
+            json.dump(self.settings, f, indent=2, ensure_ascii=False)
+            
+        self.refresh()
+
+    def show_disk_details(self, disk):
+        self.selected_disk = disk
+        self.side_panel.hide()
+        self.add_panel.hide()
+        
+        self.disk_name_input.setText(disk.name)
+        
+        # Populate disk images
+        disk_img_dir = os.path.join(self.assetsdir, "medias", "disk")
+        images = []
+        if os.path.exists(disk_img_dir):
+            images = [f for f in os.listdir(disk_img_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        self.disk_image_combo.clear()
+        self.disk_image_combo.addItems(images)
+        
+        disk_images = self.settings.get("disk_images", {})
+        current_img = disk_images.get(disk.name)
+        if not current_img:
+            if 'ssd' in disk.name.lower():
+                current_img = "ssd.png"
+            else:
+                current_img = "hdd.png"
+        if current_img in images:
+            self.disk_image_combo.setCurrentText(current_img)
+            
+        self.disk_panel.show()
+
+    def save_disk_details(self):
+        if hasattr(self, 'selected_disk') and self.selected_disk:
+            new_name = self.disk_name_input.text().strip()
+            if not new_name:
+                QMessageBox.warning(self, "Erreur", "Le nom du disque ne peut pas être vide.")
+                return
+                
+            old_name = self.selected_disk.name
+            
+            # Rename disk in BDD
+            if new_name != old_name:
+                if new_name in self.db.disks:
+                    QMessageBox.warning(self, "Erreur", f"Le disque '{new_name}' existe déjà.")
+                    return
+                # Pop and rename
+                self.db.disks[new_name] = self.db.disks.pop(old_name)
+                self.db.disks[new_name].name = new_name
+                self.db.save()
+                
+            # Save disk image in settings.json
+            disk_images = self.settings.get("disk_images", {})
+            selected_img = self.disk_image_combo.currentText()
+            disk_images[new_name] = selected_img
+            
+            if new_name != old_name:
+                if old_name in disk_images:
+                    del disk_images[old_name]
+                    
+            self.settings["disk_images"] = disk_images
+            
+            path_settings = self.assetsdir + "settings.json"
+            with open(path_settings, "w", encoding='utf-8') as f:
+                json.dump(self.settings, f, indent=2, ensure_ascii=False)
+                
+            self.disk_panel.hide()
+            self.refresh()
+            QMessageBox.information(self, "Succès", f"Le disque '{new_name}' a été modifié avec succès.")
+
+    def ouvrir_panneau_ajouter(self):
+        self.side_panel.hide()
+        self.disk_panel.hide()
+        self.update_add_panel_combos()
+        
+        self.add_game_name_input.clear()
+        self.add_game_year_input.setValue(0)
+        self.add_game_size_input.setValue(0.0)
+        self.add_disk_name_input.clear()
+        self.add_launcher_name_combo.setCurrentText("")
+        self.add_game_launcher_combo.setCurrentText("")
+        
+        self.add_panel.show()
+
+    def update_add_panel_combos(self):
+        disks = list(self.db.disks.keys())
+        
+        curr_game_disk = self.add_game_disk_combo.currentText()
+        curr_launcher_disk = self.add_launcher_disk_combo.currentText()
+        
+        self.add_game_disk_combo.clear()
+        self.add_game_disk_combo.addItems(disks)
+        if curr_game_disk in disks:
+            self.add_game_disk_combo.setCurrentText(curr_game_disk)
+            
+        self.add_launcher_disk_combo.clear()
+        self.add_launcher_disk_combo.addItems(disks)
+        if curr_launcher_disk in disks:
+            self.add_launcher_disk_combo.setCurrentText(curr_launcher_disk)
+            
+        self.on_add_game_disk_changed()
+        
+        from functions.functions import get_launchers_config
+        launchers_config = list(get_launchers_config().keys())
+        
+        self.add_launcher_name_combo.clear()
+        self.add_launcher_name_combo.addItems(launchers_config)
+
+    def submit_addition(self):
+        current_type = self.add_type_combo.currentText()
+        
+        if current_type == "Jeu":
+            game_name = self.add_game_name_input.text().strip()
+            disk_name = self.add_game_disk_combo.currentText()
+            launcher_name = self.add_game_launcher_combo.currentText().strip()
+            year = self.add_game_year_input.value()
+            size = self.add_game_size_input.value()
+            
+            if not game_name:
+                QMessageBox.warning(self, "Erreur", "Le nom du jeu ne peut pas être vide.")
+                return
+            if not disk_name:
+                QMessageBox.warning(self, "Erreur", "Veuillez sélectionner ou ajouter un disque d'abord.")
+                return
+            if not launcher_name:
+                QMessageBox.warning(self, "Erreur", "Le nom du launcher ne peut pas être vide.")
+                return
+                
+            res = self.db.add_app(disk_name, launcher_name, game_name, size, year)
+            if res.startswith("Erreur"):
+                QMessageBox.warning(self, "Erreur", res)
+            else:
+                self.add_panel.hide()
+                self.refresh()
+                QMessageBox.information(self, "Succès", f"Le jeu '{game_name}' a été ajouté avec succès.")
+                
+        elif current_type == "Disque":
+            disk_name = self.add_disk_name_input.text().strip()
+            if not disk_name:
+                QMessageBox.warning(self, "Erreur", "Le nom du disque ne peut pas être vide.")
+                return
+            
+            if any(d.lower() == disk_name.lower() for d in self.db.disks):
+                QMessageBox.warning(self, "Erreur", f"Le disque '{disk_name}' existe déjà.")
+                return
+                
+            from models.disk import Disk
+            self.db.disks[disk_name] = Disk(disk_name)
+            self.db.save()
+            self.add_panel.hide()
+            self.refresh()
+            QMessageBox.information(self, "Succès", f"Le disque '{disk_name}' a été ajouté avec succès.")
+            
+        elif current_type == "Launcher":
+            disk_name = self.add_launcher_disk_combo.currentText()
+            launcher_name = self.add_launcher_name_combo.currentText().strip()
+            
+            if not disk_name:
+                QMessageBox.warning(self, "Erreur", "Veuillez sélectionner un disque parent.")
+                return
+            if not launcher_name:
+                QMessageBox.warning(self, "Erreur", "Le nom du launcher ne peut pas être vide.")
+                return
+                
+            disk = self.db.disks.get(disk_name)
+            if not disk:
+                QMessageBox.warning(self, "Erreur", f"Le disque '{disk_name}' n'existe pas.")
+                return
+                
+            if any(l.lower() == launcher_name.lower() for l in disk.launchers):
+                QMessageBox.warning(self, "Erreur", f"Le launcher '{launcher_name}' existe déjà sur le disque '{disk_name}'.")
+                return
+                
+            from models.launcher import Launcher
+            disk.launchers[launcher_name] = Launcher(launcher_name)
+            self.db.save()
+            self.add_panel.hide()
+            self.refresh()
+            QMessageBox.information(self, "Succès", f"Le launcher '{launcher_name}' a été ajouté sur '{disk_name}' avec succès.")
 
     def __applyTheme(self):
         with open(self.assetsdir+'style.qss', 'r') as file:

@@ -1,7 +1,7 @@
 import os
 import json
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu, QPushButton, QFileDialog, QColorDialog, QScrollArea, QGraphicsView, QGraphicsScene, QApplication, QMessageBox, QDialog, QFormLayout, QSpinBox, QDoubleSpinBox, QDialogButtonBox
-from PyQt6.QtCore import Qt, QPointF, QSize
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout, QSizePolicy, QLineEdit, QMenuBar, QMenu, QPushButton, QFileDialog, QColorDialog, QScrollArea, QGraphicsView, QGraphicsScene, QApplication, QMessageBox, QDialog, QFormLayout, QSpinBox, QDoubleSpinBox, QDialogButtonBox, QComboBox
+from PyQt6.QtCore import Qt, QPointF, QSize, QVariantAnimation
 from PyQt6.QtGui import QAction, QPixmap, QColor, QPainter, QBrush, QPen, QIcon, QPolygonF, QCursor, QKeySequence
 from functions.functions import terminal
 
@@ -60,26 +60,76 @@ class DiskWidget(QWidget):
         self.db = db
         self.refresh_callback = refresh_callback
         self.main_window = main_window
+        
+        # Border animation colors setup
+        self.default_border_color = QColor(255, 255, 255, 38)  # 15% white (lighter)
+        disk_color = QColor(self.get_color(self.index))
+        disk_color.setAlpha(38)  # 15% alpha
+        self.target_border_color = disk_color
+        self.current_border_color = QColor(self.default_border_color)
+        
+        self.border_animation = QVariantAnimation(self)
+        self.border_animation.setDuration(200)  # Snappier 200ms transition
+        self.border_animation.valueChanged.connect(self.animate_border)
+        
         self.init_ui()
+
+    def animate_border(self, value):
+        self.current_border_color = value
+        self.update()
+
+    def enterEvent(self, event):
+        self.border_animation.stop()
+        self.border_animation.setStartValue(self.current_border_color)
+        self.border_animation.setEndValue(self.target_border_color)
+        self.border_animation.start()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.border_animation.stop()
+        self.border_animation.setStartValue(self.current_border_color)
+        self.border_animation.setEndValue(self.default_border_color)
+        self.border_animation.start()
+        super().leaveEvent(event)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Draw card background
+        painter.setBrush(QBrush(QColor("#29272b")))
+        
+        # Draw card border
+        pen = QPen(self.current_border_color, 2)
+        painter.setPen(pen)
+        
+        rect = self.rect().adjusted(1, 1, -1, -1)
+        painter.drawRoundedRect(rect, 6.0, 6.0)
 
     def init_ui(self):
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setObjectName("DiskWidget")
         self.setStyleSheet("""
             QWidget#DiskWidget {
-                background-color: rgba(0, 0, 0, 0.05);
-                border-radius: 6px;
+                background-color: transparent;
+                border: none;
             }
         """)
         disk_layout = QHBoxLayout(self)
-        disk_layout.setContentsMargins(6, 6, 6, 6)
+        disk_layout.setContentsMargins(15, 15, 15, 15)
         disk_layout.setSpacing(10)
 
         # Determine if it's SSD or HDD
-        if 'ssd' in self.disk.name.lower():
-            image_disque = self.assetsdir + "medias/ssd.png"
+        settings = self.main_window.settings if self.main_window else {}
+        disk_images = settings.get("disk_images", {})
+        selected_image = disk_images.get(self.disk.name)
+        if selected_image:
+            image_disque = self.assetsdir + "medias/disk/" + selected_image
         else:
-            image_disque = self.assetsdir + "medias/hdd.png"
+            if 'ssd' in self.disk.name.lower():
+                image_disque = self.assetsdir + "medias/disk/ssd.png"
+            else:
+                image_disque = self.assetsdir + "medias/disk/hdd.png"
 
         # Create a container widget for the disk header to support custom styling and High-DPI scaling
         disk_header = QWidget()
@@ -104,17 +154,19 @@ class DiskWidget(QWidget):
         disk_top_row_layout.addStretch()
         
         if os.path.exists(image_disque):
-            disk_logo_label = LogoLabel(image_disque, 25, 25, self)
-            disk_top_row_layout.addWidget(disk_logo_label)
+            self.disk_logo_label = LogoLabel(image_disque, 25, 25, self)
+            disk_top_row_layout.addWidget(self.disk_logo_label)
+        else:
+            self.disk_logo_label = None
 
-        disk_text_label = QLabel(f'<b>{self.disk.name}</b>')
-        disk_text_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        disk_top_row_layout.addWidget(disk_text_label)
+        self.disk_name_label = QLabel(f'<b>{self.disk.name}</b>')
+        self.disk_name_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        disk_top_row_layout.addWidget(self.disk_name_label)
         
         disk_header_layout.addWidget(disk_top_row)
         
-        # Bottom row: Total size in Go (in grey)
-        total_disk_size = sum(float(app.size) for launcher in self.disk.launchers.values() for app in launcher.apps)
+        # Bottom row: Total size in Go of displayed apps (>= 0.1 Go) (in grey)
+        total_disk_size = sum(float(app.size) for launcher in self.disk.launchers.values() for app in launcher.apps if float(app.size) >= 0.1 and app.name.strip().lower() != "steamworks common redistributables")
         disk_size_label = QLabel(f'<span style="font-size: 12px; color: grey;">{total_disk_size:.1f} Go</span>')
         disk_size_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         disk_size_label.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -127,7 +179,8 @@ class DiskWidget(QWidget):
         launchers_layout.setSpacing(0)
 
         for launcher_name, launcher in self.disk.launchers.items():
-            if not launcher.apps:
+            displayed_apps = [app for app in launcher.apps if float(app.size) >= 0.1 and app.name.strip().lower() != "steamworks common redistributables"]
+            if not displayed_apps:
                 continue
             launcher_layout = QHBoxLayout()
             launcher_layout.setContentsMargins(0, 0, 0, 0)
@@ -173,8 +226,8 @@ class DiskWidget(QWidget):
             
             header_layout.addWidget(launcher_top_row)
             
-            # Bottom row: Total size in Go (in grey)
-            total_launcher_size = sum(float(app.size) for app in launcher.apps)
+            # Bottom row: Total size in Go of displayed apps (in grey)
+            total_launcher_size = sum(float(app.size) for app in displayed_apps)
             launcher_size_label = QLabel(f'<span style="font-size: 12px; color: grey;">{total_launcher_size:.1f} Go</span>')
             launcher_size_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             launcher_size_label.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -183,7 +236,7 @@ class DiskWidget(QWidget):
             launcher_layout.addWidget(header_widget)
 
             apps_layout = QVBoxLayout()
-            for app in launcher.apps:
+            for app in displayed_apps:
                 app_label = AppLabel(app, launcher, self.disk, self.db, self.refresh_callback, main_window=self.main_window, parent=self)
                 apps_layout.addWidget(app_label)
 
@@ -264,7 +317,7 @@ class NewBddInputWidget(QLineEdit):
         self.deleteLater()
 
 
-def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_refresh, on_search=None, on_autofill=None, settings_button=None):
+def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_refresh, on_search=None, on_autofill=None, on_add=None, on_axis=None, settings_button=None):
     menuBar = QMenuBar(parent)
     menuBar.setObjectName("mainMenuBar")
     menuBar.setMouseTracking(True)
@@ -297,6 +350,12 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_
         searchAction.triggered.connect(on_search)
     editMenu.addAction(searchAction)
 
+    addAction = QAction('Ajouter', parent)
+    addAction.setStatusTip('  Ajouter un disque, un launcher ou un jeu')
+    if on_add:
+        addAction.triggered.connect(on_add)
+    editMenu.addAction(addAction)
+
     autofillAction = QAction('Remplir auto.', parent)
     autofillAction.setStatusTip('  Remplir avec les jeux')
     if on_autofill:
@@ -305,11 +364,14 @@ def build_menu_bar(parent, on_exit, on_terminal, on_github, on_new, on_open, on_
 
     viewMenu = QMenu('Vue', parent)
     viewMenu.setCursor(Qt.CursorShape.PointingHandCursor)
-    listAction = QAction('Changer l\'axe', parent)
-    listAction.setStatusTip('  Axe X ou Y')
+    axisAction = QAction('Changer l\'axe', parent)
+    axisAction.setStatusTip('  Disposer les disques horizontalement ou verticalement')
+    if on_axis:
+        axisAction.triggered.connect(on_axis)
+    viewMenu.addAction(axisAction)
+
     sortAction = QAction('Trier', parent)
     sortAction.setStatusTip('  (ne fonctionne pas)')
-    viewMenu.addAction(listAction)
     viewMenu.addAction(sortAction)
 
     otherMenu = QMenu('Autres', parent)
@@ -711,12 +773,27 @@ class CanvasView(QGraphicsView):
             local_pos = main_win.proxy.mapFromScene(pos_scene)
             child = main_win.proxy.widget().childAt(local_pos.toPoint())
             
+            disk_widget = None
+            disk_name_clicked = False
             app_label = None
-            while child:
-                if isinstance(child, AppLabel):
-                    app_label = child
+            
+            temp_child = child
+            while temp_child:
+                if isinstance(temp_child, AppLabel):
+                    app_label = temp_child
                     break
-                child = child.parent()
+                if isinstance(temp_child, DiskWidget):
+                    disk_widget = temp_child
+                    # Check if the clicked child is under disk_name_label or disk_logo_label
+                    check_lbl = child
+                    while check_lbl and check_lbl != disk_widget:
+                        if (check_lbl == getattr(disk_widget, 'disk_name_label', None) or 
+                            check_lbl == getattr(disk_widget, 'disk_logo_label', None)):
+                            disk_name_clicked = True
+                            break
+                        check_lbl = check_lbl.parent()
+                    break
+                temp_child = temp_child.parent()
                 
             if app_label:
                 menu = QMenu(self)
@@ -733,3 +810,11 @@ class CanvasView(QGraphicsView):
                     main_win.selected_app = app_label.app
                     main_win.selected_launcher = app_label.launcher
                     main_win.delete_selected_app()
+            elif disk_widget and disk_name_clicked:
+                menu = QMenu(self)
+                menu.setCursor(Qt.CursorShape.PointingHandCursor)
+                modify_action = menu.addAction("Modifier")
+                
+                action = menu.exec(self.mapToGlobal(position_clic))
+                if action == modify_action:
+                    main_win.show_disk_details(disk_widget.disk)

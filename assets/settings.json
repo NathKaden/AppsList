@@ -1,9 +1,11 @@
 {
-  "path_bdd": "C:/Users/boula/Desktop/main/IDE/AppsList/AppsList/bdd/msiNath.json",
+  "path_bdd": "C:\\Users\\boula\\Desktop\\main\\IDE\\AppsList\\AppsList\\bdd\\a.json",
   "colors": [
     "#ED7F10",
     "#BDFF00",
-    "skyblue"
+    "skyblue",
+    "#ffcc00",
+    "#ff0051"
   ],
   "launchers": {
     "Steam": {
@@ -34,5 +36,10 @@
       "color": "lightgrey",
       "image": "microsoft_store.png"
     }
+  },
+  "disk_axis": "horizontal",
+  "disk_images": {
+    "New Disk Name": "hdd.png",
+    "Main CP5P 1To": "ssd.png"
   }
 }
