@@ -3,10 +3,16 @@ import os
 import shlex
 from models import Database
 
-# Resolve path_settings relative to this file's location
+import sys
+# Resolve path_settings relative to this file's location or the executable location if frozen
+if getattr(sys, 'frozen', False):
+    base_dir = os.path.dirname(sys.executable)
+else:
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 path_settings = os.path.abspath(
     os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        base_dir,
         "assets",
         "settings.json"
     )

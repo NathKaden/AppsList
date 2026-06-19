@@ -26,13 +26,18 @@ class YearSpinBox(QSpinBox):
         except ValueError:
             return 0
 
+def get_app_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
 class MainWindow(QMainWindow):
     changedToDark = pyqtSignal(bool)
 
     def __init__(self):
         super().__init__()
         # Get path relative to the script directory
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        current_dir = get_app_dir()
         self.assetsdir = os.path.join(current_dir, "assets").replace("\\", "/") + "/"
         path_settings = self.assetsdir + "settings.json"
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
@@ -618,7 +623,7 @@ class MainWindow(QMainWindow):
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
             self.settings = json.load(fichiersettings)
             
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        current_dir = get_app_dir()
         if not os.path.isabs(self.settings["path_bdd"]):
             self.settings["path_bdd"] = os.path.abspath(os.path.join(current_dir, self.settings["path_bdd"]))
             
@@ -649,7 +654,7 @@ class MainWindow(QMainWindow):
             with open(path_settings, "r", encoding="utf-8") as f:
                 settings_data = json.load(f)
             
-            current_dir = os.path.dirname(os.path.abspath(__file__))
+            current_dir = get_app_dir()
             bdd_dir = os.path.join(current_dir, "bdd").replace("\\", "/")
             normalized_file_path = file_path.replace("\\", "/")
             
@@ -735,7 +740,7 @@ class MainWindow(QMainWindow):
         with open(path_settings, "r", encoding='utf-8') as fichiersettings:
             self.settings = json.load(fichiersettings)
             
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        current_dir = get_app_dir()
         if not os.path.isabs(self.settings["path_bdd"]):
             self.settings["path_bdd"] = os.path.abspath(os.path.join(current_dir, self.settings["path_bdd"]))
             
